@@ -22,7 +22,7 @@ easy mocking for unit tests, in memory database vs production one, etc.
 
 
 
-***Creating app context***
+#####Creating app context
 ```java
     //From single configuration class
     ApplicationContext context = SpringApplication.run(ApplicationConfiguration.class);
@@ -36,7 +36,7 @@ easy mocking for unit tests, in memory database vs production one, etc.
        context = app.run(args);
 ```
 
-***Obtaining beans form Application Context***
+#####Obtaining beans form Application Context
 ```java
     //Obtain bean by type
     context.getBean(MyBean.class);
@@ -49,7 +49,7 @@ easy mocking for unit tests, in memory database vs production one, etc.
 - If none of the Spring scopes is appropriate, custom scopes can be defined
 - Scope can be defined by @Scope (eg. @Scope(BeanDefinition.SCOPE_SINGLETON)) annotation on the class-level of bean class
 
-***Available Scopes***
+#####Available Scopes
 - Singleton - One instance per application context, default if bean scope is not defined
 - Prototype - New instance is created every time bean is requested
 - Session - One instance per user session - Web Environment only
@@ -62,8 +62,84 @@ easy mocking for unit tests, in memory database vs production one, etc.
 # Spring Configuration
 - can be xml or java based
 
+###Externalizing Configuration Properties
+- Configuration values (DB connection, external endpoints, ...) should not be hardcoded in the configuration files
+- Better to externalize to, eg. to .properties files
+- Can then be easily changed without a need to rebuild application
+- Can have different values on different environments (eg. different db instance on each environment)
+- Spring provides abstraction on top of many property sources
+    - JNDI
+    - Java .properties files
+    - JVM System properties
+    - System environment variables
+    - Servlet context params
+    
+#####Obtaining properties using Environment object    
+- Environment can be injected using @Autowired annotation
+- properties are obtained using environment.getProperty("propertyName")
+
+#####Obtainging properties using @Value annotation
+- @Value("${propertyName}") can be used as an alternative to Environment object
+- can be used on fields on method parameters
+
+
+#####Property Sources
+- Spring loads system property sources automatically (JNDI, System variables, ...)
+- Additional property sources can be specified in configuration using @PropertySource annotation on @Configuration class
+- If custom property sources are used, you need to declare PropertySourcesPlaceholderConfigurer as a static bean
+```java
+@Configuration
+@PropertySource("classpath:/com/example/myapp/config/application.properties")
+public class ApplicationConfiguration {
+    
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
+    
+    //Addtional config here
+}
+```
+- Can use property placeholders in @PropertySource names (eg. different property based on environment - dev, staging, prod)
+- placeholders are resolved against know properties
+```java
+@PropertySource("classpath:/com/example/myapp/config/application-{$ENV}.properties")
+```
+
+#####Spring Expression language
+- Acronym SpEL
+- can be used in @Value annotation values
+- enclosed in #{}
+- ${} is for properties, #{} is for SpEL
+- Access property of bean #{beanName.property}
+- Can reference systemProperties and systemEnvironment
+- Used in other spring project such as Security, Integration, Batch, WebFlow,...
+
+#####Spring profiles
+- Beans can have associated profile (eg. "local", "staging", "mock")
+- Using @Profile("profileName") annotation - either on bean level or on @Configuration class level - then it applies for all the beans inside
+- Beans with no profile are always active
+- Beans with a specific profile are loaded only when given profile is active
+- Beans can have multiple profiles assigned
+- Multiple profiles can be active at the same time
+- Active profiles can be set in several different ways
+    - @ActiveProfiles in spring integration tests
+    - in web.xml deployment descriptor as context param ("spring.profiles.active")
+    - By setting "spring.profiles.active" system property
+    - Active profiles are comma-separated
+- Profiles can be used to load different property files under different profiles
+```
+@Configuration
+@Profile("local")
+@PropertySource("classpath:/com/example/myapp/config/application-local.properties")
+public class LocalConfig {
+    //@PropertySource is loaded only when "local" profile is active
+
+    //Config here
+}
+
 ###Composite configuration
-- preferred way is to divide configuration to multiple files and then import them when used
+- Preferred way is to divide configuration to multiple files and then import them when used
 - Usually based on application layers - web layer, service layer, DAO layer,...
 - Enables better configuration organization
 - Enables to separate layers, which often change based on environment, etc. - eg. switching services for mocks in unit tests, having in-memory database, ...
