@@ -1,4 +1,4 @@
-> &#128712; Topics marked with [A] are advanced and are not covered in the certification exam
+> Note: Topics marked with [A] are advanced and are not covered in the certification exam
 
 #Dependency Injection In Spring
 ##DI Basics
