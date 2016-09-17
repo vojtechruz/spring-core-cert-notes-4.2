@@ -1,5 +1,7 @@
+> &#128712; Topics marked with [A] are advanced and are not covered in the certification exam
+
 #Dependency Injection In Spring
-###DI Basics
+##DI Basics
 - Reduces coupling between classes
 - Classes do not obtain their dependencies (collaborators), Spring container provides proper dependency based on configuration provided
 - Enables easy switching of dependencies based en current needs - local development automaticallyenvironment, 
@@ -11,7 +13,7 @@ easy mocking for unit tests, in memory database vs production one, etc.
 - Lifecycle of beans is managed centrally by Spring container (eg. enforces singleton state of bean/ one isntance pers session. one instance per http request/...)
 - Spring configuration (incl. DI) is possible either via xml or Java configuration files (newer, more popular approach)
 
-###Spring Application Context
+##Spring Application Context
 - Spring beans are managed by Application Context (container)
 - Application context is initialized with one or more configuration files (java or xml), which contains setting for framework, DI, persistence, transactions,...
 - Application context can be also instantiated in unit tests
@@ -22,7 +24,7 @@ easy mocking for unit tests, in memory database vs production one, etc.
 
 
 
-#####Creating app context
+####Creating app context
 ```java
     //From single configuration class
     ApplicationContext context = SpringApplication.run(ApplicationConfiguration.class);
@@ -36,24 +38,24 @@ easy mocking for unit tests, in memory database vs production one, etc.
        context = app.run(args);
 ```
 
-#####Obtaining beans form Application Context
+####Obtaining beans form Application Context
 ```java
     //Obtain bean by type
     context.getBean(MyBean.class);
 ```
 
 
-###Bean Scopes
+##Bean Scopes
 - Spring manages lifecycle of beans, each bean has its scope
 - Default scope is singleton - one instance per application context
 - If none of the Spring scopes is appropriate, custom scopes can be defined
 - Scope can be defined by @Scope (eg. @Scope(BeanDefinition.SCOPE_SINGLETON)) annotation on the class-level of bean class
 
-#####Available Scopes
+####Available Scopes
 - Singleton - One instance per application context, default if bean scope is not defined
 - Prototype - New instance is created every time bean is requested
 - Session - One instance per user session - Web Environment only
-- Global-session - One global session shared among all portlets - Only in Web Portlet Environment
+- [A]Global-session - One global session shared among all portlets - Only in Web Portlet Environment
 - Request - One instance per each HTTP Request - Web Environment only
 - Custom - Can define multiple custom scopes with different names and lifecycle
 - Additional scopes available for Spring Web Flow applications (not needed for the certification)
@@ -61,8 +63,9 @@ easy mocking for unit tests, in memory database vs production one, etc.
 
 # Spring Configuration
 - can be xml or java based
+- Externalized from the bean class → separation of concerns
 
-###Externalizing Configuration Properties
+##Externalizing Configuration Properties
 - Configuration values (DB connection, external endpoints, ...) should not be hardcoded in the configuration files
 - Better to externalize to, eg. to .properties files
 - Can then be easily changed without a need to rebuild application
@@ -74,16 +77,16 @@ easy mocking for unit tests, in memory database vs production one, etc.
     - System environment variables
     - Servlet context params
     
-#####Obtaining properties using Environment object    
+####Obtaining properties using Environment object    
 - Environment can be injected using @Autowired annotation
 - properties are obtained using environment.getProperty("propertyName")
 
-#####Obtainging properties using @Value annotation
+####Obtainging properties using @Value annotation
 - @Value("${propertyName}") can be used as an alternative to Environment object
 - can be used on fields on method parameters
 
 
-#####Property Sources
+####Property Sources
 - Spring loads system property sources automatically (JNDI, System variables, ...)
 - Additional property sources can be specified in configuration using @PropertySource annotation on @Configuration class
 - If custom property sources are used, you need to declare PropertySourcesPlaceholderConfigurer as a static bean
@@ -97,7 +100,7 @@ public class ApplicationConfiguration {
         return new PropertySourcesPlaceholderConfigurer();
     }
     
-    //Addtional config here
+    //Additional config here
 }
 ```
 - Can use property placeholders in @PropertySource names (eg. different property based on environment - dev, staging, prod)
@@ -106,7 +109,7 @@ public class ApplicationConfiguration {
 @PropertySource("classpath:/com/example/myapp/config/application-{$ENV}.properties")
 ```
 
-#####Spring Expression language
+####Spring Expression language
 - Acronym SpEL
 - can be used in @Value annotation values
 - enclosed in #{}
@@ -115,7 +118,7 @@ public class ApplicationConfiguration {
 - Can reference systemProperties and systemEnvironment
 - Used in other spring project such as Security, Integration, Batch, WebFlow,...
 
-#####Spring profiles
+####Spring profiles
 - Beans can have associated profile (eg. "local", "staging", "mock")
 - Using @Profile("profileName") annotation - either on bean level or on @Configuration class level - then it applies for all the beans inside
 - Beans with no profile are always active
@@ -137,8 +140,9 @@ public class LocalConfig {
 
     //Config here
 }
+```
 
-###Composite configuration
+##Composite configuration
 - Preferred way is to divide configuration to multiple files and then import them when used
 - Usually based on application layers - web layer, service layer, DAO layer,...
 - Enables better configuration organization
@@ -167,3 +171,164 @@ public class ApplicationConfiguration {
     }
 ```
 - In case multiple same beans are found among configuration, spring injects the one, which is discovered as the last
+
+##Java Configuration
+- In Java classes annotated with @Configuration on class level
+- Beans can be either specifically declared in @Configuration using @Bean annotation or automatically discovered using component scan
+
+
+####Component Scan
+- On @Configuration class, @ComponentScan annotation can be present with packages, which should be scanned
+- All classes with @Component annotation on class level in scanned packages are automatically considered spring managed beans
+- Applies also for annotations annotated with @Component (@Service, @Controller, @Repository, @Configuration)
+- Beans declare their dependencies using @Autowired annotation - automatically injected by spring
+    - Field level - even private fields
+    - Method Level
+    - Constructor level
+- Autowired dependencies are required by default and result in exception when no matching bean found
+- Can be changed to optional using @Autowired(required=false)
+- Dependencies of type Optional<T> are automatically considered optional
+- Can be also used for scanning jar dependencies
+- Recommended to declared as specific scanned packages as possible to speed up scan time
+
+```java
+@Configuration
+@ComponentScan( { "org.foo.myapp", "com.bar.anotherapp" })
+public class ApplicationConfiguration {
+    //Configuration here
+}
+```
+
+#####@Value annotation
+- Either system properties (using ${}) or SpEL (using #{})
+- Can be on fields, constructor parameters or setter parameters
+- On constructors and setters must be combined with @Autowired on method level, for fields @Value alone is enough
+- Can specify default values
+    - ${minAmount:100}"
+    - \#{environment['minAmount'] ?: 100}
+
+####Setter vs Constructor vs Field injection
+- All three types can be used and combined
+- Usage should be consistent
+- Constructors are preferred for mandatory and immutable dependencies
+- Setters are preferred for optional and changeable dependencies
+- Only way to resolve circular dependencies is using setter injection, constructors cannot be used
+- Field injection can be used, but mostly discouraged
+
+#### Autowired conflicts
+- If no bean of given type for @Autowired dependency is found and it is not optional, exception is thrown
+- If more beans satisfying the dependency is found, NoSuchBeanDefinitionException is thrown as well
+- Can use @Qualifier annotation to inject bean by name, the name can be defiend inside component annotation - @Component("myName")
+```java
+@Component("myRegularDependency")
+public class MyRegularDependency implements MyDependency {...}
+
+@Component("myOtherDependency")
+public class MyOtherDependency implements MyDependency {...}
+
+@Component
+public class MyService {
+    @Autowired
+    public MyService(@Qualifier("myOtherDependency") MyDependency myDependency) {...}
+}
+
+```
+
+Autowired resolution sequence
+1. Try to inject bean by type, if there is just one
+2. Try to inject by @Qualifier if present
+3. Try to inject by bean name matchin name of the property being set
+    - Bean 'foo' for 'foo' field in field injection
+    - Bean 'foo' for 'setFoo' setter in setter injection
+    - Bean 'foo' for constructor param named 'foo' in constructor injection
+    
+When a bean name is not specified, one is auto-generated - De-capitalized non-qualified classname
+
+
+####Explicit bean declaration
+- Class is explicitly marked as spring managed bean in @Configuration class
+- All settings of the bean are present in the @Configuration class in the bean declaration
+- Spring config is completely in the @Configuration, bean is just POJO with no spring dependency
+- Cleaner separation of concerns
+- Only option for third party dependencies, where you cannot change source code
+
+```java
+@Configuration
+public class ApplicationConfiguration {
+    
+    /***
+    *  - Object returned by this method will be spring managed bean 
+    *  - Return type is the type of the bean
+    *  - Method name is the name of the bean
+    */
+    @Bean
+    public MyBean myBean() {
+        MyBean myBean = new MyBean();
+        //Configure myBean here
+        return myBean;
+    }
+```
+
+####Conponent scan vs Explicit bean declaration
+- Same settings can be achieved either way
+- Both approaches can be mixed
+    - Can use component scan for your code, @Configuration for third party and legacy code
+    - Use component scan only for Spring classes, Explicit configuration for others
+- Explicit bean declaration 
+    - Is more verbose 
+    - Achieves cleaner separation of concerns
+    - Config is centralized in on or several places
+    - Configuration can contain complex logic
+- Component scan
+    - Config is scattered across many classes
+    - Cannot be used for third party classes
+    - Code and configuration violates single responsibility principle, bad separations of concerns
+    - Good for rapid prototyping and frequently changing code
+    
+####@PostConstruct, @PreDestroy
+- Can be used on @Components's methods
+- Methods can have any access modifier, but no arguments and return void
+- Applies to both beans discovered by component scan and declared by @Bean in @Configuration
+- Defined by JSR-250, not Spring (javax.annotation package)
+- Also used by EJB3
+- Alternative in @Configuration is @Bean(initMethod="init”, destroyMethod="destroy") - can be used for third party beans
+
+@PostConstruct  
+- Method is invoked by Spring after DI
+
+@PreDestroy  
+- Method is invoked before bean is destroyed  
+- Is not called for prototype scoped beans!  
+- After application context is closed  
+- If JVM exits normally  
+
+####Stereotypes and Meta-annotations
+**Stereotype** 
+- Spring has several annotations, which are themselves annotated by @Component
+- @Service, @Controller, @Repository, @Configuration, ... more in other Spring Projects
+- Are discoverable using component scan
+
+**Meta-annotations**
+- Used to annotate other annotations
+- Eg. can create custom annotation, which combines @Service and @Transactional
+
+####[A] @Resource annotation
+- From JSR-250, supported by EJB3
+- Identifies dependencies for injection by name and not type like @Autowired
+- Name is spring bean name
+- Can be used for field and setter DI, not for constructors
+- Can be used with name @Resource("beanName") or without
+    - If not provided, name is inferred from field name or tries injection by type if name fails
+    - setAmount() → "amount" name 
+
+####[A] JSR-330
+- Alternative DI annotations
+- Spring is valid JSR-330 implementation
+- @ComponentScan also scans for JSR-330 annotations
+- @Inject for injecting dependencies
+    - Provides subset of @Autowired functionality, but often is enough
+    - Always required
+- @Named - Alternative to @Component   
+    - With or without bean name - @Named / @Named("beanName")
+    - Default scope is "prototype"
+- @Singleton - instead of @Named for singleton scoped beans    
