@@ -38,6 +38,12 @@ easy mocking for unit tests, in memory database vs production one, etc.
        context = app.run(args);
 ```
 
+[A] Additional ways to create app context
+- new AnnotationConfigApplicationContext(AppConfig.class);
+- new ClassPathXmlApplicationContext(“com/example/app-config.xml”);
+- new FileSystemXmlApplicationContext(“C:/Users/vojtech/app-config.xml”);
+- new FileSystemXmlApplicationContext(“./app-config.xml”);
+
 ####Obtaining beans form Application Context
 ```java
     //Obtain bean by type
@@ -332,3 +338,131 @@ public class ApplicationConfiguration {
     - With or without bean name - @Named / @Named("beanName")
     - Default scope is "prototype"
 - @Singleton - instead of @Named for singleton scoped beans    
+
+
+##XML Configuration
+- Original form of configuration in Spring
+- External configuration in xml files
+- Beans are declared inside \<beans\> tag
+- Can be combined with java config
+    - Xml config files can be imported to @Configuration using @ImportResource
+    - @ImportResource({"classpath:com/example/foo/config.xml","classpath:com/example/foo/other-config.xml"})
+    - For importing java config files, @Import is used
+    - In xml, `<import resource="config.xml" />` can be used to import other xml config files, path is relative to current xml config file
+
+```xml
+<beans>
+    <import resource="other-config.xml" />
+    <bean id="fooBeanName" class="com.example.foo.Foo" />
+    <bean id="barBeanName" class="com.example.bar.Bar" />
+</beans>
+```
+
+Conponent scan can be also used in XML
+```xml
+<context:component-scan base-package="com.example.foo, com.example.bar"/>
+```
+
+#### Constructor injection
+- using \<constructor-arg\> tag
+- `ref` attribute is used for injecting beans
+- `value` attribute is used for setting primitive values, primitives are auto-converted to proper type
+    - supports numeric types, BigDecimal, boolean, Date, Resource, Locale
+- Parameters can be in any order, are matched by type
+- If necessary, order can be defined - <constructor-arg ref="someBean" index="0"/>
+- Or using named constructor parameters - <constructor-arg ref="someBean" name="paramName"/>
+    - Java 8+
+    - OR compiled with debug-symbols enabled to preserve param names
+    - OR @ConstructorProperties( { "firstParam", "secondParam" } ) on constructor - order of items matches order of constructor params
+```xml
+<bean id="fooBeanName" class="com.example.foo.Foo">
+    <constructor-arg ref="someBean"/>
+    <constructor-arg val="42"/>
+</bean>
+```
+
+#### Setter injection
+- using \<property\> tag
+- `ref` or `value` like wit constructor injection
+- setter and constructor injection can be combined
+- can use \<value\> tag inside of \<property\>``
+
+```xml
+<bean id="fooBeanName" class="com.example.foo">
+    <constructor-arg ref="someBean"/>
+    <property ref="someOtherBean"/>
+    <property name="someProperty" val="42"/>
+    <property name="someOtherProperty">
+        <value>42</value>
+    </property>
+</bean>
+```
+
+#### Additional bean config
+- @PostConstruct is equivalent to `init-method` attribute
+- @PreDestroy is init to `destroy-method` attribute
+- @Scope is equivalent to `scope` attribute, singleton if not specified
+- @Lazy is equivalent to `lazy-init` attribute
+- @Profile is equivalent to `profile` attribute, on `<beans>` tag, `<beans>` tags can be nested
+```xml
+<beans profile="barProfile">
+    <beans profile="fooProfile">
+        <bean id="fooBeanName" class="com.example.foo.Foo" scope="prototype" />
+    </beans>
+    <bean id="barBeanName" class="com.example.bar.Bar" lazy-init="true" init-method="setup" 
+          destroy-method="teardown" />
+</beans>
+```
+
+
+####XML Namespaces
+- Default namespace is usually beans
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd>
+    <!--Config here-->
+</beans>
+```
+- Many other namespaces available
+    - context
+    - aop (Aspect Oriented Programming)
+    - tx (transactions)
+    - util
+    - jms
+    - ...
+- Provides tags to simplify configuration and hide detailed bean configuration
+    - `<context:property-placeholder location="config.properties" />` instead of declaring PropertySourcesPlaceholderConfigurer bean manually
+    - `<aop:aspectj-autoproxy />` Enables AOP (5+ beans)
+    - `<tx:annotation-driven />` Enables Transactions (15+ beans)
+- XML Schema files can have version specified (spring-beans-4.2.xsd) or not (spring-beans.xsd)
+    - If version not specified, most recent is used
+    - Usually no version number is preferred as it means easier upgrade to newer framework version
+    
+#### Accessing properties in xml
+- Equivalent of @Value in xml
+- Still need to declare PropertySourcesPlaceholderConfigurer
+- `<context:property-placeholder location="config.properties" />` from `context` namespace
+```xml
+<beans ...beans and context namespaces here...>
+    <context:property-placeholder location="config.properties" />
+    <bean id="beanName" class="com.example.MyBean">
+        <property name="foo" value="${foo}" />
+        <property name="bar" value="${bar}" />
+    </bean>
+</beans>
+```
+
+Can load different property files based on spring profiles
+```xml
+<context:property-placeholder properties-ref="config"/>
+<beans profile="foo">
+    <util:properties id="config" location="foo-config.properties"/>
+</beans>
+<beans profile="bar">
+    <util:properties id="config" location="bar-config.properties"/>
+</beans>
+ 
+```
