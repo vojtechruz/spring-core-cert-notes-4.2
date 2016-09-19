@@ -466,3 +466,75 @@ Can load different property files based on spring profiles
 </beans>
  
 ```
+
+#Spring Application Lifecycle
+- Three main phases - Initialization, Use, Destruction
+- Lifecycle independent on configuration style used (java / xml)
+
+##Initialization phase
+- Application is prepared for usage
+- Application not usable until init phase is complete
+- Beans are created and configured
+- System resources allocated
+- Phase is complete when application context is fully initialized
+
+####Bean initialization process
+1. Bean definitions loaded
+2. Bean definitions post-processed
+3. For each bean definition
+    1. Instantiate bean
+    2. Inject dependencies
+    3. Run Bean Post Processors
+        1. Pre-Initialize
+        2. Initialize
+        3. Post-Initialize
+        
+####Loading and post-processing bean definitions
+- Explicit bean definitions are loaded from java @Configuration files or XML config files
+- Beans are discovered using component scan
+- Bean definitions are added to BeanFactory with its id
+- Bean Factory Post Processor beans are invoked - can alter bean definitions
+- Bean definitions are altered before beans are instantiated based on them
+- Spring has already many BFPPs - replacing property placeholders with actual values, registering custom scope,...
+- Custom BFPPs can be created by implementing BeanFactoryPostProcessor interface
+        
+####Instatiating beans
+- Spring creates beans eagerly by default, unless declared as @Lazy (or lazy-init in xml)
+- Beans are created in right order to satisfy dependencies
+- After a bean is instantiated, it may be post-processed (similar to bean definitions)
+- One kind of post-processors are Initializers - @PostConstruct/init-method
+- Other post processors can be invoked either before initialization or after initialization
+- To create custom Bean Post Processor, implement interface BeanPostProcessor
+```xml
+public interface BeanPostProcessor {
+    public Object postProcessAfterInitialization(Object bean, String beanName); 
+    public Object postProcessBeforeInitialization(Object bean,String beanName);
+}
+```
+Note that return value is the post-processed bean. It may be the bean with altered state, however, it may be completely new object.
+It is very important - post processor can return proxy of bean instead of original one - used a lot in spring - AOP, Transactions, ...
+Proxy can add dynamic hehavior such as security, logging or transactions without its consumers knowing.
+
+####Spring Proxies
+- Two types of proxies
+- JDK dynamic proxies
+    - Proxied bean must implement java interface
+    - Part of JDK
+    - All interfaces implemented by the class are proxied
+    - Based on proxy implementing interfaces
+- CGLib proxies
+    - Not part of JDK, included in spring
+    - Used when class implements no interface
+    - Cannot be applied to final classes or methods
+    - Based on proxy inheriting the base class
+
+##Use phase
+- App is in this phase for the vast majority of time 
+- Beans are being used, business logic performed
+
+##Destruction phase
+- Application shuts down
+- Resources are being released
+- Happens when application context closes
+- @PreDestroy  and destroyMethod methods are called
+- Garbage Collector still responsible for collecting objects
