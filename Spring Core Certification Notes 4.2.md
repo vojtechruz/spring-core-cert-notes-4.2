@@ -538,3 +538,55 @@ Proxy can add dynamic hehavior such as security, logging or transactions without
 - Happens when application context closes
 - @PreDestroy  and destroyMethod methods are called
 - Garbage Collector still responsible for collecting objects
+
+#Testing Spring Applications
+##Test Types
+
+####Unit Tests
+- Without spring
+- Isolated tests for single unit of functionality, method level
+- Dependencies interactions are not tested - replaced by either mocks or stubs
+- Controllers; Services; ...
+
+####Integration Tests
+- With spring 
+- Tests interactions between components
+- Dependencies are not mocked/stubbed
+- Controllers + Services + DAO + DB
+
+##Spring Test
+- Distributed as separate artifact - spring-test.jar
+- Allows testing application without the need to deploy to external container
+- Allows to reuse most of the spring config also in tests
+- Consist of several JUnit support classes
+- SpringJUnit4ClassRunner - application context is cached among test methods - only one instance of app context is created per test class
+- Test class needs to be annotated with @RunWith(SpringJUnit4ClassRunner.class)
+- Spring configuration classes to be loaded are specified in @ContextConfiguration annotation
+    - If no value is provided (@ContextConfiguration), config file `${classname}-context.xml` in the same package is imported
+    - XML config files are loaded by providing string value to annotation - `@ContextConfiguration("classpath:com/example/test-config.xml")`
+    - Java @Configuration files are loaded from `classes` attribute - `@ContextConfiguration(classes={TestConfig.class, OtherConfig.class})`
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes={TestConfig.class, OtherConfig.class})
+public final class FooTest  {
+    //Autowire dependencies here as usual
+    @Autowired
+    private MyService myService;
+    
+    //...
+}
+```
+
+@Configuration inner classes (must be static) are automatically detected and loaded in tests
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(...)
+public final class FooTest  {
+    @Configuration
+    public static class TestConfiguration {...}
+}
+```
+
+####Testing with spring profiles
+- @ActiveProfiles annotation of test class activates profiles listed - @ActiveProfiles( { "foo", "bar" } )
