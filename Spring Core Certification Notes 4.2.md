@@ -589,4 +589,19 @@ public final class FooTest  {
 ```
 
 ####Testing with spring profiles
-- @ActiveProfiles annotation of test class activates profiles listed - @ActiveProfiles( { "foo", "bar" } )
+- @ActiveProfiles annotation of test class activates profiles listed 
+- @ActiveProfiles( { "foo", "bar" } )
+
+####Testing with in-memory DB
+- Real DB usually replaced with in-memory db for integration tests
+- No need to install db server
+- In-memory db initialized with scripts using @Sql annotation
+- Can be either on class level or method level
+- If on class level, SQL is executed before every test method in the class
+- If on method level, SQL is executed before invoking particular method
+- Can be declared withou or without value
+- When value is present, specified SQL script is executed - @Sql({ "/sql/foo.sql", "/sql/bar.sql" } )
+- When no value is present, defaults to ClassName.methodName.sql
+- Can be specified whether SQL is run before (by default) or after the test method
+- @Sql(scripts=“/sql/foo.sql”, executionPhase=Sql.ExecutionPhase.AFTER_TEST_METHOD)
+- Can provide further configuration using `config` param  - error mode, comment prefix, separator, ...
