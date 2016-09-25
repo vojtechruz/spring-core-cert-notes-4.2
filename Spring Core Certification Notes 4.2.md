@@ -605,3 +605,173 @@ public final class FooTest  {
 - Can be specified whether SQL is run before (by default) or after the test method
 - @Sql(scripts=“/sql/foo.sql”, executionPhase=Sql.ExecutionPhase.AFTER_TEST_METHOD)
 - Can provide further configuration using `config` param  - error mode, comment prefix, separator, ...
+
+#Aspect Oriented Programming
+- AOP solves modularization of cross-cutting concerns
+- Functionality, which would be scattered all over the app, but is not core functionality of the class
+    - Logging
+    - Security
+    - Performance monitoring
+    - Caching
+    - Error handling
+    - ...
+- Keeps good separation of concerns, does not violae single responsibility principle
+- Solves two main problems
+    - Code Tangling - Coupling of different concerns in one class - eg. business logic coupled with security and logging
+    - Code scattering - Same code scattered among multiple classes, code duplication - eg. same security logic in each class
+    
+Writing AOP Apps
+1. Write main application logic
+2. Write Aspects to address cross-cutting concerns
+3. Weave aspects into the application, to be applied in right places
+
+##AOP Technologies
+- AspectJ
+    - Original AOP Technology
+    - Uses bytecode modification for aspect weaving
+    - Complex, lot of features
+- Spring AOP
+    - AspectJ integration
+    - Subset of AspectJ functionality
+    - Uses dynamic proxies instead of bytecode manipulation for aspect weaving
+    - Limitations
+        - Can advise non-private methods only
+        - Only applicable to Spring Managed Beans
+        - AOP is not applied when one method of the class calls method on the same class (will bypass the proxy)
+    
+##AOP Concepts
+- Join Point - A point in the execution of the app, where aop code will be applied - method call, exception thrown
+- Pointcut - Expression that matches one or multiple Join Points
+- Advice - Code to be executed at each matched Join Point
+- Aspect - Module encapsulating Pointcut and Advice
+- Weaving - Technique, by which aspects are integrated into main code
+
+##Enabling AOP
+- In XML - `<aop:aspectj-autoproxy />`
+- In Java Config - @EnableAspectJAutoProxy on @Configuration class
+- Create @Aspect classes, which encapsulate AOP behavior
+    - Annotate with @Aspect
+    - Must be spring managed bean - either explicitly declare in configuration or discover via component-scan
+    - Class methods are annotated with annotation defining advice (eg. Before method call, After, if exception), the annotation value defines pointcut
+    - @Before("execution(void set*(*))")
+    
+```java
+@Aspect
+public class MyAspect {
+    @Before("execution(void set*(*))") 
+    public void beforeSet() {
+        //Do something before each setter call
+    }
+```
+
+##Pointcuts
+- Spring AOP uses subset of AspectJ's expression language for defining pointcuts
+- Can create composite conditions using ||, &amp;&amp; and !
+- `execution(<method pattern>)` - method must match the pattern provided
+- `[Modifiers] ReturnType [ClassType] MethodName ([Arguments]) [throws ExceptionType]`
+    - `execution(void com.example.*Service.set*(..))`
+    - Means method call of Services in com.example package starting with "set" and any number of method parameters
+- More examples
+    - `execution(void find*(String))` - Any methods returning void, starting with "find" and having single String argument
+    - `execution(* find(*))` - Any method named "find" having exactly one argument of any type
+    - `execution(* find(int, ..))` - Any method named "find", where its first argument is int (.. means 0 or more)
+    - `execution(@javax.annotation.security.RolesAllowed void find(..))` - Any method returning void named "find" annotated with specified annotation
+    - `execution(* com.*.example.*.*(..))` - Exactly one directory between com and example 
+    - `execution(* com..example.*.*(..))` - Zero or more directoryies between com and example
+    - execution(* *..example.*.*(..)) - Any sub-package called "Example"
+    
+    
+##Advice Types
+####Before
+- Executes before target method invocation
+- If advice throws an exception, target is not called
+- @Before("expression")
+
+####After returning
+- Executes after successful target method invocation
+- If advice throws an exception, target is not called
+- Return value of target method can be injected to the annotated method using `rewarding` param
+- @AfterReturning(value="expression", returning="paramName")
+```java
+  @AfterReturning(value="execution(* service..*.*(..))", returning="retVal")
+    public void doAccessCheck(Object retVal) {
+        //...
+    }
+```
+
+####After throwing
+- Called after target method invocation throws an exception
+- Exception object being thrown from target method can be injected to the annotated method using `throwing` param
+- It will not stop exception from propagating, but can throw another exception
+- Stopping exception from propagating can be achieved using @Around advice
+- @AfterThrowing(value="expression", throwing="paramName")
+
+```java
+  @AfterThrowing(value="execution(* service..*.*(..))", throwing="exception")
+    public void doAccessCheck(Exception exception) {
+        //...
+    }
+```
+
+####After
+- Called after target method invocation, no matter whether it was succesfull or there was an exception
+- @After("expression")
+
+####Around
+- ProceedingJoinPoint parameter can be injected - same as regular JoinPoint, but has proceed() method
+- By calling proceed() method, target method will be invoked, otherwise it will not be
+
+####[A] XML AOP Configuration
+- Instead of AOP annotations (@Aspect, @Before, @After, ...), pure XML onfig can be used
+- Aspects are just POJOs with no spring annotations or dependencies whatsoever
+- `aop` namespace
+```xml
+<aop:config>
+    <aop:aspect ref="myAspect">
+        <aop:before pointcut="execution(void set*(*))" method="logChange"/> 
+    </aop:aspect>
+    
+    <bean id="myAspect" class="com.example.MyAspect" />
+</aop:config>
+```
+
+####[A]Named Pointcuts
+- Pointcut expressions can be named and then referenced
+- Makes pointcut expressions reusable
+- Pointcuts can be externalized to separate file
+- Composite pointcuts can be split into several named pointcuts
+
+XML
+```java
+<aop:config>
+    <aop:pointcut id="pointcut" expression="execution(void set*(*))"/> 
+    
+    <aop:aspect ref="myAspect">
+        <aop:after-returning pointcut-ref="pointcut" method="logChange"/> 
+    </aop:aspect> 
+    
+    <bean id="myAspect" class="com.example.MyAspect" />
+</aop:config>
+```
+
+Java
+```java
+//Pointcut is referenced here by its ID
+@Before("setters()") 
+public void logChange() {
+    //...
+}
+
+//Method name is pointcut id, it is not executed
+@Pointcut("execution(void set*(*))") 
+public void setters() {
+    //...
+}
+```
+
+####[A] Context Selecting Pointcuts
+- Data from JoinPoint can be injected as method parameters with type safety
+- Otherwise they would need to be obtained from JoinPoint object with no type safety guaranteed
+- `@Pointcut(“execution(void example.Server.start(java.util.Map)) && target(instance) && args(input)”)`
+    - target(instance) injects instance on which is call performed to "instance" parameter of the method
+    - args(input) injects target method parameters to "input" parameter of the method
