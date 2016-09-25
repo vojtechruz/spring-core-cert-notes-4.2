@@ -777,6 +777,87 @@ public void setters() {
     - args(input) injects target method parameters to "input" parameter of the method
     
     
+#REST
+- Representational State Transfer
+- Architectural style
+- Stateless (clients maintains state, not server), scalable; → do not use HTTP session
+- Usually over http, but not necessarily
+- Entities (e.g. Person) are resources represented by URIs
+- HTTP methods (GET, POST, PUL, DELETE) are actions performed on resource (like CRUD)
+- Resource can have multiple representations (different content type)
+- Request specifies desired representation using HTTP Accept header, extension in url (.json) or parameter in url (format=json)
+- Response states delivered representation type using Content-Type HTTP header
+
+##HATEOAS
+- Hypermedia As The Engine of Application State
+- Response contains links to other items and actions → can change behavior without changing client
+- Decoupling of client and server
+
+    
+##JAX-RS
+- Java API for RESTful web services
+- Part of Java EE6
+- Jersey is reference implementation  
+
+```java
+@Path("/persons/{id}")
+public class PersonService {
+  @GET
+  public Person getPerson(@PathParam("id") String id) {
+    return findPerson(id);
+  }
+}
+```
+
+##RestTemplate
+- Can be used to simplify HTTP calls to RESTful api
+- Message converters supported - Jackson, GSON
+- Automatic input/output conversion - using HttpMessageConverters
+    - StringHttpMessageConvertor
+    - MarshallingHttpMessageConvertor
+    - MappingJackson2XmlHttpMessageConverter
+    - GsonHttpMessageConverter
+    - RssChannelHttpMessageConverter
+- AsyncRestTemplate - similar to regular one, allows asynchronous calls, returns ListenableFuture
+
+##Spring Rest Support
+- In MVC Controllers, HTTP method consumed can be specified
+    - @RequestMapping(value="/foo", method=RequestMethod.POST)
+- @ResponseStatus can set HTTP response status code
+    - If used, void return type means no View (empty response body) and not default view!
+    - 2** - sucess (201 Created, 204 No Content,...)
+    - 3** - redirect
+    - 4** - client error (404 Not found, 405 Method Not Allowed, 409 Conflict,...)
+    - 5** - server error
+- @ResponseBody before controller method return type means that the response should be directly rendered to client and not evaluated as a logical view name
+    -  Uses converters to convert return type of controller method to requested content type
+- @RequestHeader can inject value from HTTP request header as a method parameter
+- @RequestBody - Injects body of HTTP request, uses converters to convert request data based on content type
+    - public void updatePerson(@RequestBody Person person, @PathVariable("id") int personId)
+    - Person can be converted from JSON, XML, ...
+- HttpEntity<>
+    - Controller can return HttpEntity instead of view name - and directly set response body, HTTP response headers
+    - `return new HttpEntity<ReturnType>(responseBody, responseHeaders);`
+- HttpMessageConverter
+    - Converts HTTP response (annotated by @ResponseBody) and request body data (annotated by @RequestBody)
+    - `@EnableWebMvc` or `<mvc:annotation-driven/>` enables it
+    - XML, Forms, RSS, JSON,...
+- @RequestMapping can have attributes produces and consumes to specify input and output content type
+    - `@RequestMapping (value= "/person/{id}", method=RequestMethod. GET, produces = {"application/json"})`
+    - `@RequestMapping (value= "/person/{id}", method=RequestMethod. POST, consumes = { "application/json" })`
+- Content Type Negotiation can be used both for views and REST endpoints
+- @RestController - Equivalent to @Controller, where each method is annotated by @ResponseBody
+- @ResponseStatus(HttpStatus.NOT_FOUND) - can be used on exception to define HTTP code to be returned when given exception is thrown
+- @ExceptionHandler({MyException.class}) - Controller methods annotated with it are called when declared exceptions are thrown
+    - Method can be annotated also with @ResponseStatus to define which HTTP result code should be sent to the client in the case of the exception
+- When determining address of child resources, UriTemplate should be used so absolute urls are not hardcoded
+```java
+StringBuffer currentUrl = request.getRequestURL();
+String childIdentifier = ...;//Get Child Id from url requested
+UriTemplate template = new UriTemplate(currentUrl.append("/{childId}").toString()); 
+String childUrl = template.expand(childIdentifier).toASCIIString();
+```
+    
 #Microservices in Spring
 ##Microservices
 - Classic monolithic architecture
