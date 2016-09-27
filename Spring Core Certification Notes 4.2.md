@@ -956,3 +956,126 @@ Then call specific Microservice with the restTemplate
 ```java
 restTemplate.getForObject("http://persons-microservice-name/persons/{id}", Person.class, id);
 ```
+
+#Spring Security
+- Independent on container - does not require EE container, configured in application and not in container
+- Separated security from business logic
+- Decoupled authorisation from authentication
+- Principal - User, device, or system that is performing and action
+- Authentication
+    - Process of checking identity of a principal (credentials are valid)
+    - basic, digest, form, X.509, ...
+    - Credentials need to be stored securely
+- Authorization
+    - Process of checking a principal has privileges to perform requested action
+    - Depends on authentication
+    - Often based on roles - privileges not assigned to specific users, but to groups
+- Secured item - Resource being secured
+
+##Configuring Spring Security
+- Annotate your @Configuration with @EnableWebMvcSecurity
+- Your @Configuration should extend WebSecurityConfigurerAdapter
+```java
+@Configuration
+@EnableWebSecurity
+public class HelloWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+  @Override
+  public void configureGlobal(AuthenticationManagerBuilder authManagerBuilder) throws Exception  {
+    //Global security config here
+  }
+  
+  @Override
+  protected void configure(HttpSecurity httpSecurity) throws Exception {
+      //Web security specific config here
+  }
+}
+```
+web.xml - Declare spring security filter chain as a servlet filter
+```xml
+<filter>
+  <filter-name>springSecurityFilterChain</filter-name>
+  <filter-class> org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+</filter>
+
+<filter-mapping>
+  <filter-name>springSecurityFilterChain</filter-name>
+  <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+##Authorization
+- Process of checking a principal has privileges to perform requested action
+- Specific urls can have specific Role or authentication requirements
+- Can be configured using HttpSecurity.authorizeRequests().*
+```java
+@Configuration
+@EnableWebSecurity
+public class HelloWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+  @Override
+  protected void configure(HttpSecurity httpSecurity) throws Exception {
+      httpSecurity.authorizeRequests().antMatchers("/css/**","/img/**","/js/**").permitAll()
+                                      .antMatchers("/admin/**").hasRole("ADMIN")
+                                      .antMatchers("/user/profile").hasAnyRole("USER","ADMIN")
+                                      .antMatchers("/user/**").authenticated()
+                                      .antMatchers("/user/private/**").fullyAuthenticated()
+                                      .antMatchers("/public/**").anonymous();
+  }
+}
+```
+- Rules are evaluated in the order listed
+- Should be from the most specific to the least specific
+- Options
+    - `hasRole()` - has specific role
+    - `hasAnyRole()` - multiple roles with OR
+    - `hasRole(FOO)` AND `hasRole(BAR)` - having multiple roles
+    - `isAnonymous()` - unauthenticated
+    - `isAuthenticated()` - not anonymous
+
+##Authentication
+
+####Login and Logout
+```java
+@Configuration
+@EnableWebSecurity
+public class HelloWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+  @Override
+  protected void configure(HttpSecurity httpSecurity) throws Exception {
+      httpSecurity.authorizeRequests().formLogin().loginPage("/login.jsp") .permitAll()
+                                      .and()
+                                      .logout().permitAll();
+  }
+}
+```
+
+Login JSP Form
+```xml
+<c:url var="loginUrl" value="/login.jsp" /> 
+<form:form action="${loginUrl}" method="POST">
+    <input type="text" name="username"/>
+    <input type="password" name="password"/>
+    <input type="submit" name="submit" value="LOGIN"/> 
+</form:form> 
+```
+
+##Spring Security Tag Libraries
+- Add taglib to JSP
+```xml
+ <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
+ ```
+- Facelet fags for JSF also available
+- Displaying properties of Authentication object - `<security:authentication property=“principal.username”/>` 
+- Display content only if principal has certain role
+```xml 
+<security:authorize access="hasRole('ADMIN')"> 
+    <p>Admin only content</p>
+</security:authorize>
+```
+- Or inherit the role required from specific url (roles required for specific urls are centralized in config and not across many JSPs)
+ ```xml 
+ <security:authorize url="/admin"> 
+     <p>Admin only content</p>
+ </security:authorize>
+ ```
