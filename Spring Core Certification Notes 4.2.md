@@ -1079,3 +1079,25 @@ Login JSP Form
      <p>Admin only content</p>
  </security:authorize>
  ```
+ 
+##Method Security
+- Methods (e.g. service layer) can be secured using AOP
+- JSR-250 or Spring annotations or pre/post authorise
+ 
+####JSR-250
+- Only supports role based security
+- `@EnableGlobalMethodSecurity(jsr250Enabled=true)` on @Configuration to enable
+- On method level  `@RolesAllowed("ROLE_ADMIN")`
+
+####Spring @Secured Annotations
+- `@EnableGlobalMethodSecurity(securedEnabled=true)` on @Configuration to enable
+- `@Secured("ROLE_ADMIN")` on method level
+- Supports not only roles - e.g. @Secured("IS_AUTHENTICATED_FULLY")
+- SpEL not supported
+ 
+     
+####Pre/Post authorize
+- `@EnableGlobalMethodSecurity(prePostEnabled=true)` on @Configuration to enable
+- Pre authorize - can use SpEL (@Secured cannot), checked before annotated method invocation
+- Post authorize - can use SpEL, checked after annotated method invocation, can access return object of the method using returnObject variable in SPEL; If expression resolves to false, return value is not returned to caller
+- `@PreAuthorize("hasRole('ROLE_ADMIN')")`
