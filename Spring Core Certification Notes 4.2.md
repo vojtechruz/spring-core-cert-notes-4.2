@@ -981,7 +981,7 @@ restTemplate.getForObject("http://persons-microservice-name/persons/{id}", Perso
 public class HelloWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Override
-  public void configureGlobal(AuthenticationManagerBuilder authManagerBuilder) throws Exception  {
+  public void configureGlobal(AuthenticationManagerBuilder authManagerBuilder) throws Exception {
     //Global security config here
   }
   
@@ -1034,6 +1034,68 @@ public class HelloWebSecurityConfiguration extends WebSecurityConfigurerAdapter 
     - `isAuthenticated()` - not anonymous
 
 ##Authentication
+####Authentication provider
+- Processes authentication requests and returns Authentication object
+- Default is DaoAuthenticationProvider
+    - UserDetailsService implementation is needed to provide credentials and authorities
+    - Built-in implementations: LDAP, in-memory, JDBC
+    - Possible to build custom implementation
+- Can provide different auth configuration based on spring @Profiles - in-memory for development, JDBC for production etc.    
+    
+In-memory Authentication provider
+```java
+@Configuration
+@EnableWebSecurity
+public class HelloWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+  @Override
+  public void configureGlobal(AuthenticationManagerBuilder authManagerBuilder) throws Exception  {
+      authManagerBuilder.inMemoryAuthentication().withUser("alice").password("letmein").roles("USER").and()
+                                                 .withUser("bob").password("12345").roles("ADMIN").and();
+  }
+}
+```
+    
+JDBC Authentication provider  
+- Authenticates against DB
+- Can customize queries using .usersByUsernameQuery(), .authoritiesByUsernameQuery(), groupAuthoritiesByUsername()
+- Otherwise default queries will be used
+```java
+@Configuration
+@EnableWebSecurity
+public class HelloWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+  
+  @Autowired
+  private DataSource dataSource;  
+    
+  @Override
+  public void configureGlobal(AuthenticationManagerBuilder authManagerBuilder) throws Exception {
+      authManagerBuilder.jdbcAuthentication().dataSource(dataSource)
+                                             .usersByUsernameQuery(...)
+                                             .authoritiesByUsernameQuery(...)
+                                             .groupAuthoritiesByUsername(...);
+  }
+}
+```
+
+####Password Encoding
+- Supports passwords hashing (md5, sha, ...)
+- Supports password salting - adding string to password before hashing - prevents decoding passwords using [rainbow tables](https://en.wikipedia.org/wiki/Rainbow_table)
+```java
+@Configuration
+@EnableWebSecurity
+public class HelloWebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+  
+  @Autowired
+  private DataSource dataSource;  
+    
+  @Override
+  public void configureGlobal(AuthenticationManagerBuilder authManagerBuilder) throws Exception {
+      authManagerBuilder.jdbcAuthentication().dataSource(dataSource)
+                                             .passwordEncoder(new StandardPasswordEncoder("this is salt"));
+  }
+}
+```
 
 ####Login and Logout
 ```java
