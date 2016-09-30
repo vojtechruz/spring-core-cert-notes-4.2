@@ -1163,3 +1163,51 @@ Login JSP Form
 - Pre authorize - can use SpEL (@Secured cannot), checked before annotated method invocation
 - Post authorize - can use SpEL, checked after annotated method invocation, can access return object of the method using returnObject variable in SPEL; If expression resolves to false, return value is not returned to caller
 - `@PreAuthorize("hasRole('ROLE_ADMIN')")`
+
+
+#Spring Web
+- Provides several web modules - Spring MVC, Spring Web Flow, ...
+- Spring can be integrated with other web frameworks, some integration provided by Spring itself
+- Spring web layer on top of regular spring application layer
+- Initialized using regular servlet listener
+- Can be configured either in web.xml or using AbstractContextLoaderInitializer - implements WebApplicationInitializer, 
+which is automatically recognized and processed by servlet container (Sevrlets 3.0+)
+
+AbstractContextLoaderInitializer
+```java
+public class WebAppInitializer extends AbstractContextLoaderInitializer {
+
+    @Override
+    protected WebApplicationContext createRootApplicationContext() {
+        AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext();
+        //Configure app context here
+        return applicationContext;
+    }
+}
+```
+
+web.xml
+- Register spring-provided Servlet listener
+- Provide spring config files as context param - contextConfigLocation
+- Defaults to WEB-INF/applicationContext.xml if not provided
+- can provide spring active profiles in spring.profiles.active
+```xml
+<context-param> 
+    <param-name>contextConfigLocation</param-name> 
+    <param-value>
+        /WEB-INF/config.xml
+        /WEB-INF/other-config.xml
+    </param-value> 
+</context-param>
+
+<listener>
+    <listener-class>
+        org.springframework.web.context.ContextLoaderListener
+    </listener-class> 
+</listener>
+
+<context-param>
+    <param-name>spring.profiles.active</param-name>
+    <param-value>profile1,profile2</param-value> 
+</context-param>
+```
