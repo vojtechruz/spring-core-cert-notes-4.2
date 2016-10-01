@@ -1418,30 +1418,56 @@ public class Application extends SpringBootServletInitializer {
 ##Application Configuration
 
 - Application configuration is externalised by default to application.properties file
+- alternatively can use YAML configuration - application.yml by default
 - Located in workingdirectory/config or working directory or classpath/config or classpath
 - PropertySource automatically created
-- Some config options
+- Properties 
+
+####Configuration resolution sequence
+1. Check /config subdirectory of the working directory for application.properties file
+2. Check working directory
+3. Check config package in the classpath
+4. Check classpath root
+5. Create property source based on files found
+
+####Logging
 ```properties
 #Logging through SLF4J
 logging.level.org.springframework=DEBUG
 logging.level.com.example=INFO
-
-#Datasource - either include spring-boot-starter-jdbc or spring-boot-starter- data-jpa, 
-#JDBC driver required on classpath, datasource will be created automatically 
-spring.datasource.url=jdbc:mysql://localhost/test
-spring.datasource.username=user
-spring.datasource.password=password
-spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-
-server.port=8081 #8080 is default of Tomcat
-server.address=...
-server.session-timeout=600
-server.context-path=/ #/ is default
-server.servlet-path=/ #/ is default
 ```
-- alternatively can use YAML configuration - application.yml by default
+####DataSource
+- either include spring-boot-starter-jdbc or spring-boot-starter- data-jpa
+- JDBC driver required on classpath, datasource will be created automatically 
+- Tomcat JDBC as default pool, other connection pools can be used if present - eg.HikariCP
+```properties
+#Conntection
+spring.datasource.url=             
+spring.datasource.username=
+spring.datasource.password=
+spring.datasource.driver-class-name=
 
-Web container can be configured in Java dynamically by implementing EmbeddedServletContainerCustomizer interface and registering resulting class as a @Component
+#Scripts to be executed
+spring.datasource.schema=
+spring.datasource.data=
+
+#Connection pool
+spring.datasource.initial-size=
+spring.datasource.max-active=
+spring.datasource.max-idle=
+spring.datasource.min-idle=
+```
+
+####Web Container
+```properties
+server.port=
+server.address=
+server.session-timeout=
+server.context-path=
+server.servlet-path=
+```
+
+[A]Web container can be configured in Java dynamically by implementing EmbeddedServletContainerCustomizer interface and registering resulting class as a @Component
 ```java
 @Override
 public void customize(ConfigurableEmbeddedServletContainer container) {
@@ -1450,6 +1476,21 @@ public void customize(ConfigurableEmbeddedServletContainer container) {
 }
 ```
 Or if needed more fine-grained configuration - declare bean of type EmbeddedServletContainerFactory
+
+####@ConfigurationProperties
+- Class is annotated with @ConfigurationProperties(prefix= "com.example")
+- Fields of the class are automatically injected with values from properties
+- @ConfigurationProperties(prefix= "com.example") + com.example.foo → foo field injected
+
+```java 
+@ConfigurationProperties(prefix="com.example")
+public class MyProperties {
+    private String foo; //com.example.foo
+    private int bar; //com.example.bar, type conversion applied
+    
+}
+```
+- Needs to be enabled on @Configuration class - `@EnableConfigurationProperties(MyProperties.class)`
 
 ##Embedded container
 - Spring boot can run embedded application server from a jar file
@@ -1462,7 +1503,7 @@ Or if needed more fine-grained configuration - declare bean of type EmbeddedServ
 @ComponentScan
 @EnableAutoConfiguration
 public class MyApplication extends SpringBootServletInitializer {
-    protected SpringApplicationBuilder configure( SpringApplicationBuilder application) {
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(MyApplication.class); 
     }
     
@@ -1477,3 +1518,18 @@ public class MyApplication extends SpringBootServletInitializer {
     - traditional jar without dependencies   
     - executable jar with all dependencies included
 - Both war and jar with embedded app server are valid options
+
+##@Conditional
+- Enables bean instantiatiation only when specific condition is met
+- Core concept of spring boot
+- Only when specific bean found - `@ConditionalOnBean(type={DataSource.class})`
+- Only when specific bean is not found - `@ConditionalOnMissingBean`
+- Only when specific class is on classpath - `@ConditionalOnClass`
+- Only When specific class is not present on classpath - `@ConditionalOnMissingClass`
+- Only when system property has certain value - `@ConditionalOnProperty(name="server.host", havingValue="localhost")`
+- @Profile is a special case of conditional
+- org.springframework.boot.autoconfigure contains a lot of conditionals for auto-configuration
+    - eg. @ConditionalOnMissingBean(DataSource.class) → Created embedded data source
+    - Specifically declared beans usually disable automatically created ones
+    - If needed, specific autoconfiguration classes can be excluded explicitly
+    - `@EnableAutoConfiguration(exclude=DataSourceAutoConfiguration.class)`
