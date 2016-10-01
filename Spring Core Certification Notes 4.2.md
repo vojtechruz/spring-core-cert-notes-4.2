@@ -33,9 +33,9 @@ easy mocking for unit tests, in memory database vs production one, etc.
     ApplicationContext context = SpringApplication.run(ApplicationConfiguration.class, args);
     
     //With additional configuration
-       SpringApplication app = new SpringApplication(ApplicationConfiguration.class);
-       // ... customize app settings here
-       context = app.run(args);
+    SpringApplication app = new SpringApplication(ApplicationConfiguration.class);
+    // ... customize app settings here
+    context = app.run(args);
 ```
 
 [A] Additional ways to create app context
@@ -1166,13 +1166,23 @@ Login JSP Form
 
 
 #Spring Web
-- Provides several web modules - Spring MVC, Spring Web Flow, ...
+- Provides several web modules 
+    - Spring MVC - Model View Controller framework
+    - Spring Web Flow - Navigation flows (wizard-like)
+    - Spring Social - Integration with facebook, twitter, ...
+    - Spring mobile - switching between regular and mobile versions of site
 - Spring can be integrated with other web frameworks, some integration provided by Spring itself
+    - JSF
+    - Struts 2 (Struts 1 no longer supported as of Spring 4+)
+    - Wicket
+    - Tapestry 5
+    - ...
 - Spring web layer on top of regular spring application layer
 - Initialized using regular servlet listener
 - Can be configured either in web.xml or using AbstractContextLoaderInitializer - implements WebApplicationInitializer, 
 which is automatically recognized and processed by servlet container (Sevrlets 3.0+)
 
+##Basic configuration
 AbstractContextLoaderInitializer
 ```java
 public class WebAppInitializer extends AbstractContextLoaderInitializer {
@@ -1185,6 +1195,12 @@ public class WebAppInitializer extends AbstractContextLoaderInitializer {
     }
 }
 ```
+- Servlet container looks for classes implementing ServletContainerInitializer (Spring provides SpringServletContainerInitializer)
+- SpringServletContainerInitializer looks for classes implementing WebApplicationInitializer, which specify configuration instead of web.xml
+- Spring provides two convenience implementations
+    - AbstractContextLoaderInitializer - only Registers ContextLoaderListener
+    - AbstractAnnotationConfigDispatcherServletInitializer - Registers ContextLoaderListener and defines Dispatcher Servlet, expects JavaConfig
+    
 
 web.xml
 - Register spring-provided Servlet listener
@@ -1211,3 +1227,253 @@ web.xml
     <param-value>profile1,profile2</param-value> 
 </context-param>
 ```
+
+##Dependency injection in servlets
+- in init() of HttpServlet cannot access spring beans as they are not available yet
+- need to use `WebApplicationContextUtils` - provides application Context through Servlet Context
+- Only needed in servlets - other components such as @Controllers can use regular Dependency Injection 
+
+```java
+public class MyServlet extends HttpServlet {
+    private MyService service;
+    
+    public void init() {
+        ApplicationContext context = WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext()); 
+        service = (MyService) context.getBean("myService");
+    }
+    
+    ...
+}
+```
+
+##Spring Web flow
+- Provides support of stateful navigation flows
+- Handles browser back button
+- Handles double submit problem
+- Support custom scopes of beans - flow scope, flash scope, ...
+- Configuration of flows defined in xml
+    - Defines flow states - view, action, end,  ...
+    - Defines transition between states
+    
+#Spring MVC    
+- Spring Web Framework based on Model-View-Controller pattern
+- Alternative to JSF, Struts, Wicket, Tapestry, ...
+- Components such as Controllers are Spring managed beans
+- Testable POJOs
+- Uses Spring Configuration
+- Supports wide range of view technologies - JSP, Freemarker, Velocity, Thymeleaf, ...
+
+
+##Dispatcher Servlet
+- Front controller pattern
+- Handles all incoming requests and delegates them to appropriate beans
+- All the web infrastructure beans are customizable and replaceable
+- DS is defined as servlet in web.xml or through WebApplicationInitializer interface
+- Separate Web Application context on top of regular app context
+- Web app context can access beans from root context but not vice versa
+
+```java
+public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+    
+    //@Configuration classes for root application context
+    @Override 
+    protected Class<?>[] getRootConfigClasses() {
+        return new Class<?>[]{ RootConfig.class };
+    }
+    
+    //@Configuration classes for web application contet
+    @Override 
+    protected Class<?>[] getServletConfigClasses() {
+        return new Class<?>[]{ WebConfig.class };
+    }
+    
+    //Urls handled by Dispatcher Servlet
+    @Override
+    protected String[] getServletMappings() {
+        return new String[]{"/app/*"};
+    }
+    
+    ...
+}
+```
+
+##Controllers
+- Annotated with @Controller
+- @RequestMapping annotation on controller's methods specifies which requests should the method handle
+
+####@RequestMapping
+- Can specify URL, which annotated method should handle - @RequestMapping("/foo")
+    - => server-url/app-context-root/servlet-mapping/**request-mapping**
+    - can use wildcards @RequestMapping("/foo/*")
+- Can specify HTTP method, which annotated method should handle
+
+
+####@RequestParam
+- Can specify parameter from http request to be injected as method parameter
+```java
+@RequestMapping("/foo")
+public String foo(@RequestParam("bar") String bar) {
+    ...
+}
+```
+- This will extract value "xxx" from requested url `/foo?bar=xxx`
+
+####@PathVariable
+- Can extract value as a method parameter from the url requested
+- eg. Extract "1" from `/persons/1`
+```java
+@RequestMapping("/persons/{personId}")
+public String foo(@PathVariable("personId") String personId) {
+    ...
+}
+```
+- Other method parameters can be injected as well - @RequestHeader(), @Cookie,...
+- Some parameters injects spring by type - HttpServletRequest, HttpServletResponse, Principal, HttpSession, ...
+
+##Views
+- Views reder output to the client based on data in the model
+- Many built-in supported view technologies - Freemarker, Velocity, JSP, ...
+- ViewResolver selects specific View based on logical view name returned by the controller methods
+
+####View Resolver
+- Translates logical view name to actual View
+- This way controller is not coupled to specific view technology (returns only logical view name)
+- Default View resolver already configured is InternalResourceViewResolver, which is used to render JSPs (JstlView). Configures prefix and suffix to logical view name which then results to path to specific JSP.
+- Can register custom resolvers
+
+####View Resolution Sequence
+1. Controller returns logical view name to DispatcherServlet.
+2. ViewResolvers are asked in sequence (based on their Order).
+3. If ViewResolver matches the logical view name then returns which View should be used to render the output. If not, it returns null and the chain continues to the next ViewResolver.
+4. Dispatcher Servlet passes the model to the Resolved View and it renders the output.
+
+
+##Spring MVC Quick Start
+1. Register Dispatcher servlet (web.xml or in Java)
+2. Implement Controllers
+3. Register Controllers with Dispatcher Servlet
+    - Can be discovered using component-scan
+4. Implement Views
+    - eg. write JSP pages
+5. Register View resolver or use the default one
+    - Need to set prefix (eg. /WEB-INF/views/) and suffix (eg. .jsp)
+6. Deploy
+
+
+#Spring Boot
+##Basics
+- Convention over configuration - pre-configures Spring app by reasonable defaults, which can be overridden
+- Maven and gradle integration
+- MVC enabled by having spring-boot-starter-web as a dependence
+    - Registers Dispatcher servlet
+    - Does same as @EnableWebMvc + more
+    - Automatically serves static resources from /static, /public, /resources or /META-INF/resources
+    - Templates are served from /templates (Velocity, FreeMarker, Thymeleaf)
+    - Registers BeanNameViewResolver if beans implementing View interface are found
+    - Registers ContentNegociatingViewResolver, InternalResourceViewResolver (prefix and suffix configurable in application.properties)
+    - Customisation of auto-configured beans should be done using WebMvcConfigurerAdapter as usual
+
+##@SpringBootApplication
+- Main Class annotated with @SpringBootApplication, can be run as a jar with embedded application server (Tomcat by default, can be changed for example to Jetty or Undertow)
+- Actually consists of three annotations @Configuration, @EnableAutoConfiguration and @ComponentScan
+- @EnableAutoConfiguration configures modules based on presence of certain classes on class path - based on @Conditional
+- Manually declared beans usually override beans automatically created by AutoConfiguration (@ConditionalOnMissingBean is used), usually bean type and not name matters
+- Can selectively exclude some AutoConfigutation classes `@EnableAutoConfiguration(exclude=DataSourceAutoConfiguration.class)`
+
+```java
+@SpringBootApplication
+public class Application extends SpringBootServletInitializer {
+  //run in embedded container
+  public static void main(String[] args) {
+    SpringApplication.run(Application.class, args);
+  }
+  
+  //run as war, needs to have <packaging>war</packaging> in pom.xml
+  @Override
+  protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+    return application.sources(Application.class);
+  }
+}
+```
+##Dependencies
+- Need to add proper maven parent and dependencies
+- Using "starter" module dependencies → as transitive dependencies bundles versions which are tested to work well together
+- spring-boot-starter, spring-boot-starter-web, spring-boot-starter-test, ...
+- Parent pom defines all the dependencies using dependency management, specific versions are not defined in our pom.xml
+- Only version which needs to be specifically declared is parent pom version
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter</artifactId>
+</dependency>
+
+<parent>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-parent</artifactId>
+  <version>1.3.0.RELEASE</version>
+</parent>
+```
+
+##Application Configuration
+
+- Application configuration is externalised by default to application.properties file
+- Located in workingdirectory/config or working directory or classpath/config or classpath
+- PropertySource automatically created
+- Some config options
+```properties
+#Logging through SLF4J
+logging.level.org.springframework=DEBUG
+logging.level.com.example=INFO
+
+#Datasource - either include spring-boot-starter-jdbc or spring-boot-starter- data-jpa, 
+#JDBC driver required on classpath, datasource will be created automatically 
+spring.datasource.url=jdbc:mysql://localhost/test
+spring.datasource.username=user
+spring.datasource.password=password
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+
+server.port=8081 #8080 is default of Tomcat
+server.address=...
+server.session-timeout=600
+server.context-path=/ #/ is default
+server.servlet-path=/ #/ is default
+```
+- alternatively can use YAML configuration - application.yml by default
+
+Web container can be configured in Java dynamically by implementing EmbeddedServletContainerCustomizer interface and registering resulting class as a @Component
+```java
+@Override
+public void customize(ConfigurableEmbeddedServletContainer container) {
+  container.setPort(8081);
+  container.setContextPath("/foo");
+}
+```
+Or if needed more fine-grained configuration - declare bean of type EmbeddedServletContainerFactory
+
+##Embedded container
+- Spring boot can run embedded application server from a jar file
+- `spring-boot-starter-web` includes embedded Tomcat, can change to Jetty 
+    - `spring-boot-starter-jetty` as a dependency
+    - exclude spring-boot-starter-tomcat dependency from `spring-boot-starter-web`
+- Embedded app server recommended for Cloud Native applications
+- Spring boot can produce jar or war (change packaging to `war`, extend SpringBootServletInitializer, override configure method)
+```java
+@ComponentScan
+@EnableAutoConfiguration
+public class MyApplication extends SpringBootServletInitializer {
+    protected SpringApplicationBuilder configure( SpringApplicationBuilder application) {
+        return application.sources(MyApplication.class); 
+    }
+    
+    //Still executable through traditional main method
+    public static void main(String[] args) { 
+        SpringApplication.run(MyApplication.class, args);
+    }
+}
+```
+- war can still be executed `java -jar myapp.war` or deployed to app server
+- when using spring-boot-maven-plugin, `mvn package` produces two jars
+    - traditional jar without dependencies   
+    - executable jar with all dependencies included
+- Both war and jar with embedded app server are valid options
