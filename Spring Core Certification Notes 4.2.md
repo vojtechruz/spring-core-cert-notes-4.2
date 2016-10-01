@@ -1398,6 +1398,12 @@ public class Application extends SpringBootServletInitializer {
 ##Dependencies
 - Need to add proper maven parent and dependencies
 - Using "starter" module dependencies → as transitive dependencies bundles versions which are tested to work well together
+    - Can override version of specific artifacts in pom.xml
+```xml
+<properties>
+    <spring.version>4.2.0.RELEASE</spring.version>
+</properties>    
+```    
 - spring-boot-starter, spring-boot-starter-web, spring-boot-starter-test, ...
 - Parent pom defines all the dependencies using dependency management, specific versions are not defined in our pom.xml
 - Only version which needs to be specifically declared is parent pom version
@@ -1431,11 +1437,21 @@ public class Application extends SpringBootServletInitializer {
 5. Create property source based on files found
 
 ####Logging
+- By default Logback over SLF4J
+- By default logs to console, but can define log file
 ```properties
 #Logging through SLF4J
 logging.level.org.springframework=DEBUG
 logging.level.com.example=INFO
+
+logging.file=logfile.log
+#OR spring.log file in to configured path
+logging.path=/log
 ```
+To change logging framework from default logback
+1. Exclude logback dependency `ch.qos.logback.logback-classic`
+2. Add desired logging framework dependency - `eg. org.slf4j.slf4j-log4j12`
+
 ####DataSource
 - either include spring-boot-starter-jdbc or spring-boot-starter- data-jpa
 - JDBC driver required on classpath, datasource will be created automatically 
@@ -1476,6 +1492,35 @@ public void customize(ConfigurableEmbeddedServletContainer container) {
 }
 ```
 Or if needed more fine-grained configuration - declare bean of type EmbeddedServletContainerFactory
+
+####YAML
+- YAML - Yaml Ain't a Markup Language
+- Alternative to configuration in .properties file
+- Configuration can be hierarchical
+```yaml
+server:
+    port: 
+    address:
+    session-timeout:
+    context-path:
+    servlet-path:
+```
+- YAML can contain configuration based on spring profiles
+    - Divided by `---`
+```yaml    
+    ---
+    spring.profiles: development
+    database:
+      host: localhost
+    user: dev 
+    ---
+    spring.profiles: production
+    database:
+      host: 198.18.200.9
+      user: admin
+```      
+- Or each profile can have its own dedicated file
+    - `application-profilename.yml`
 
 ####@ConfigurationProperties
 - Class is annotated with @ConfigurationProperties(prefix= "com.example")
@@ -1533,3 +1578,16 @@ public class MyApplication extends SpringBootServletInitializer {
     - Specifically declared beans usually disable automatically created ones
     - If needed, specific autoconfiguration classes can be excluded explicitly
     - `@EnableAutoConfiguration(exclude=DataSourceAutoConfiguration.class)`
+
+##Testing
+- Can use same configuration as Spring Boot application in tests without invoking main method
+-  @SpringApplicationConfiguration(classes= MyApplication.class)
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes=MyApplication.class) 
+public class FooServiceTest {
+    ...
+}
+```
+- Or for testing web app - @WebAppConfiguration
+- Intialized web app context
