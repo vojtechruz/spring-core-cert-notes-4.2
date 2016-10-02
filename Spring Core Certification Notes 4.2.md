@@ -1591,3 +1591,177 @@ public class FooServiceTest {
 ```
 - Or for testing web app - @WebAppConfiguration
 - Intialized web app context
+
+#Data Management With Spring
+- Spring supports many data-access technologies
+- No matter what technology is used, consistent way of using
+- JDBC, JPA, Hibernate, MyBatis, ...
+- Spring manages most of the actions under the hood
+    - Accessing data soruce
+    - Establishing connection
+    - Transactions - begin, rollback, commit
+    - Close the connection
+- Declarative transaction management (transactions through AOP proxies)
+  
+##Exception handling
+- Provides own set of exception so exceptions are not specific to underlying technology used
+- Replaces checked exceptions with unchecked
+    - Checked exceptions provide a form of tight coupling between layers
+    - If exception is not caught must be declared in method signature
+    - Exceptions from specific data access technology leak to service layer of the app - layers no more loosely coupled
+- Spring provides DataAccessException
+    - Does not reveal underlying specific technology (JPA, Hibernate, JDBC, ...)
+    - Is not single exception but hierarchy of exceptions
+    - DataAccessResource FailureException, DataIntegrityViolationException, BadSqlGrammarException, OptimisticLocking FailureException, ...
+    - Unchecked (Runtime)
+    
+##In-Memory Database
+- Spring can create embedded DB and run specified init scripts
+- H2, HSQL, Derby supported
+- Using EmbeddedDatabaseBuilder
+```java
+@Bean
+public DataSource dataSource() {
+    EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
+    builder.setName("inmemorydb")
+           .setType(EmbeddedDatabaseType.HSQL) 
+           .addScript("classpath:/inmemorydb/schema.db") 
+           .addScript("classpath:/inmemorydb/data.db");
+    
+           return builder.build();
+}
+```
+
+Or in xml
+
+```xml
+<jdbc:embedded-database id="dataSource" type="HSQL"> 
+    <jdbc:script location="classpath:schema.sql" /> 
+    <jdbc:script location="classpath:data.sql" />
+</jdbc:embedded-database>
+```
+
+Alternatively, existing DB can be initialized with data provided
+
+```xml
+<jdbc:initialize-database data-source="dataSource"> 
+    <jdbc:script location="classpath:schema.sql" /> 
+    <jdbc:script location="classpath:data.sql" />
+</jdbc:initialize-database>
+```
+
+Or the same in Java
+
+```java
+@Configuration
+public class DatabaseInitializer {
+
+    @Value("classpath:schema.sql") 
+    private Resource schemaScript; 
+
+    @Value("classpath:data.sql") 
+    private Resource dataScript;
+
+    private DatabasePopulator databasePopulator() { 
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator(); 
+        populator.addScript(schemaScript);
+        populator.addScript(dataScript); 
+        
+        return populator;
+    }
+    
+    @Bean
+    public DataSourceInitializer dataSourceInitializer(DataSource dataSource) { 
+        DataSourceInitializer initializer = new DataSourceInitializer(); 
+        initializer.setDataSource(dataSource); 
+        initializer.setDatabasePopulator(databasePopulator());
+        
+        return initializer; 
+    }
+    
+}
+```
+
+##Caching
+- Spring bean's method results can be cached
+- Cache here is a map of cache-key, cached value
+- Multiple caches supported
+- Caching enabled using
+    - `@EnableCachig` on `@Configuration` class level
+    - or in xml `<cache:annotation-driven />`
+
+####@Cacheable
+- Marks method as cacheable
+- Its result will be stored in the cache
+- Subsequent calls of the method with the same arguments will result in data being fetched from the cache
+- Defines `value` (name of the cache - multiple caches supported) and `key` (key in given cache)
+- `key` can use SpEL expressions
+- Can also use `condition`, which uses SpEL
+```java
+@Cacheable(value="mycache", key="#personName.toUpperCase()", condition="#personName.length < 50")
+public Person getPerson(String personName) {
+    ...
+}
+```
+- `@CacheEvict(value="cacheName")` clears cache before annotated method is called
+
+Or alternatively can define caching in XML
+```xml
+<bean id="myService" class="com.example.MyService"/> 
+
+<aop:config>
+    <aop:advisor advice-ref="cacheAdvice" pointcut="execution(* *..MyService.*(..))"/>
+</aop:config>
+
+<cache:advice id="cacheAdvice" cache-manager="cacheManager">
+    <cache:caching cache="myCache">
+        <cache:cacheable method="myMethod" key="#id"/> 
+        <cache:cache-evict method="fetchData" all-entries="true" />
+    </cache:caching> 
+</cache:advice>
+```
+
+####Caching Manager
+- Cache manager must be specified
+- SimpleCacheManager, EHCache, Gemfire, Custom, ...
+
+SimpleCacheManager
+```Java
+@Bean
+public CacheManager cacheManager() {
+    SimpleCacheManager manager = new SimpleCacheManager(); 
+    Set<Cache> caches = new HashSet<Cache>(); 
+    caches.add(new ConcurrentMapCache("fooCache")); 
+    caches.add(new ConcurrentMapCache("barCache")); 
+    manager.setCaches(caches);
+    
+    return manager; 
+}
+```
+EHCache
+```java
+@Bean
+public CacheManager cacheManager(CacheManager ehCache) {
+    EhCacheCacheManager manager = new EhCacheCacheManager();
+    manager.setCacheManager(ehCache);
+    return manager;
+}
+
+@Bean EhCacheManagerFactoryBean ehCacheManagerFactoryBean(String configLocation) { 
+    EhCacheManagerFactoryBean factory = new EhCacheManagerFactoryBean();
+    factory.setConfigLocation(context.getResource(configLocation));
+    return factory;
+}
+```
+
+Gemfire
+- Distributed cache replicated across multiple nodes
+- GemfireCacheManager
+- Supports transaction management - GemfireTransactionManager
+
+```xml
+<gfe:cache-manager p:cache-ref="gemfire-cache"/> 
+<gfe:cache id="gemfire-cache"/>
+<gfe:replicated-region id="foo" p:cache-ref="gemfire-cache"/> 
+<gfe:partitioned-region id="bar" p:cache-ref="gemfire-cache"/>
+```
