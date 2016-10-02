@@ -1765,3 +1765,116 @@ Gemfire
 <gfe:replicated-region id="foo" p:cache-ref="gemfire-cache"/> 
 <gfe:partitioned-region id="bar" p:cache-ref="gemfire-cache"/>
 ```
+
+#JDBC with Spring
+- Using traditional JDBC connection has many disadvantages
+    - Lot of boiletplate code
+    - Poor exception handling (cannot really react to exceptions)
+- Spring JDBC Template to the rescue
+- Implementing template method pattern
+- Takes care of all the boilerplate
+    - Establishing connection
+    - Closing connection
+    - Transactions
+    - Exception handling
+- Handles SQLExceptions properly - 
+- Transforms SQLExceptions into DataAccessExceptions
+- Great simplification - user just performs queries
+- Create one instance and reuse it - thread safe
+- Uses runtime exceptions - no try-catch needed
+- Can query for
+    - primitives, String, Date, ...
+    - Generic maps
+    - Domain objects
+    
+```java
+JdbcTemplate template = new JdbcTemplate(dataSource);
+```    
+    
+####Query for simple object    
+```java
+template.queryForObject(sqlStatement, Date.class);
+```
+
+- Can bind variables represented by `?` in the query
+- Values provided as varargs in the queryFor method
+- Order of `?` matches order of vararg arguments
+```java
+String sqlStatement = "select count(*) from ACCOUNT where balance > ? and type = ?";
+accountsCount = jdbcTemplate.queryForObject(sqlStatement, Long.class, balance, type);
+```
+
+####Query for generic collection
+- Each result row returned as map of (Column name / Field value) pairs
+- `queryForList` - when expecting multiple results
+- `queryForMap` - when expecting single result
+
+Query For single row
+```java
+jdbcTemplate.queryForMap("select * from ACCOUNT where id=?", accountId);
+```
+Results in `Map<String, Object>` {ID=1, BALANCE=75000, NAME="Checking account", ...} 
+
+Query for multiple rows
+```java
+return jdbcTemplate.queryForList("select * from ACCOUNT");
+```
+
+Results in 
+`List<Map<String,Object>> {
+    Map<String, Object> {ID=1, BALANCE=75000, NAME="Checking account", ...} 
+    Map<String, Object> {ID=2, BALANCE=15000, NAME="Checking account", ...} 
+    ...
+}`
+
+####Query for domain object
+- May consider ORM for this
+- Must implement RowMapper interface, which maps row of ResultSet to a domain object
+```java
+public interface RowMapper<T> {
+    T mapRow(ResultSet resultSet, int rowNum) throws SQLException; 
+}
+```
+Query using query for object
+```java
+//Single domain object
+Account account = jdbcTemplate.queryForObject(sqlStatement, rowMapper, param1, param2);
+//Multiple domain objects
+List<Account = jdbcTemplate.query(sqlStatement, rowMapper, param1, param2);
+```
+Alternatively, RowMapper can be replaced by lambda expression
+
+####RowCallbackHandler
+- Should be used when no return object is needed
+    - Converting results to xml/json/...
+    - Streaming results
+    - ...
+- Can be replaced by lambda expression
+```java
+public interface RowCallbackHandler {
+    void processRow(ResultSet resultSet) throws SQLException;
+}  
+```
+```java
+jdbcTemplate.query(sqlStatement, rowCallbackHandler, param1, param2);
+```
+
+####ResultSetExtractor
+- Can map multiple result rows to single return object
+- can be replaced by lambda
+```java
+public interface ResultSetExtractor<T> {
+    T extractData(ResultSet resultSet) throws SQLException, DataAccessException;
+}
+```
+
+```java
+jdbcTemplate.query(sqlStatement, resultExtractor, param1, param2);
+```
+
+####Inserts and updates
+- returns number of rows modified
+- jdbcTemplate.update() used both for updates and inserts
+```java
+numberOfAffectedRows = jdbcTemplate.update(sqlStatement, param1, param2);
+```
