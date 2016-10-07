@@ -2001,3 +2001,149 @@ implementing interfaces (!). Can be also applied to interface or parent class.
 @Transactional(rollbackFor=MyCheckedException.class, noRollbackFor={FooException.class, BarException.class})
 ```
 
+#JPA with Spring
+- JPA - Java Persistence API
+- ORM mapping
+- Domain objects POJOs
+- Common API for object relational mapping
+- Several implementations of JPA
+    - Hibernate EntityManager
+    - EclipseLink - Glassfish
+    - Apache OpenJPA - WebLogic and WebSphere
+    - Data Nucleus - Google App Engine
+- Can be used in spring without app server    
+
+##Spring JPA Configuration
+1. Define EntityManagerFactory bean
+2. Define DataSource bean
+3. Define TransactionManagement bean
+4. Define DAOs
+5. Define metadata Mappings on entity beans
+
+####EntityManager
+- Manages unit of work and involved persistence objects (Persistence context)
+- Usually in transaction
+- Some API
+    - persist(Object object) - adds entity to persistence context - INSERT INTO ...
+    - remove(Object object) - removes entity from persistence context - DELETE FROM ...
+    - find(Class entity, Object primaryKey) - Find by primary key - SELECT * FROM ... WHERE id=primaryKey
+    - Query createQuery(String queryString) - Used to create JPQL query
+    - flush() - Current state of entity is written to DB immediately
+    ...
+
+####Entity Manager Factory
+- Provides access to new app managed Entity Managers
+- Thread safe
+- Represents single data source / persistence unit
+
+```java
+@Bean
+public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+    HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter(); 
+    adapter.setShowSql(true);
+    adapter.setGenerateDdl(true);
+    adapter.setDatabase(Database.HSQL);
+
+    Properties properties = new Properties(); 
+    properties.setProperty("hibernate.format_sql", "true");
+    
+    LocalContainerEntityManagerFactoryBean emfb = new LocalContainerEntityManagerFactoryBean();
+    emfb.setDataSource(dataSource()); 
+    emfb.setPackagesToScan("com.example"); 
+    emfb.setJpaProperties(properties); 
+    emfb.setJpaVendorAdapter(adapter);
+    
+    return emfb;
+}
+
+@Bean
+public DataSource dataSource() {
+    ...
+}
+
+@Bean
+public PlatformTransactionManager transactionManager(EntityManagerFactory emf) { 
+    return new JpaTransactionManager(emf);
+}
+```
+
+Or entityManagerFactory XML Equivalent
+
+```xml
+<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"> 
+    <property name="dataSource" ref="dataSource"/>
+    <property name="packagesToScan" value="com.example"/>
+    <property name="jpaVendorAdapter">
+        <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+            <property name="showSql" value="true"/> 
+            <property name="generateDdl" value="true"/> 
+            <property name="database" value="HSQL"/>
+        </bean> 
+    </property>
+    <property name="jpaProperties">
+        <props> 
+            <prop key="hibernate.format_sql">true</prop> 
+        </props>
+    </property> 
+</bean>
+```
+
+####Persistence Unit
+- Group of persistent classes - entities
+- Has persistence provider
+- Has assigned transaction type
+- App can have multiple persistence units
+- In spring configuration of persistence unit can be either in spring configuration, persistence unit itself or combination
+
+##JPA Mapping
+- Metadata required to determine mapping of class fields to DB columns
+- Can be done using either annotations or xml (orm.xml)
+- Many defaults provided - configuration needed only when differs from the defaults
+
+####Can annotate
+- Classes 
+    - Configuration applies to entire class
+    - Class annotated @Entity
+    - Table name can be overridden using @Table(name="TABLE_NAME"), if not specified class name is used
+- Fields
+    - Usually mapped to columns
+    - By default all considered persistent
+    - Can annotate @Transient if should not be persistent
+    - Accessed directly though reflection
+    - @Id can be used to mark primary key field, can be placed also on getter
+    - @Column(name="column_name") can be used to specify column name, if not specified, field name is used as default, can be also placed on getter
+    - @Entity and @Id are mandatory, rest is optional
+    - @JoinColumn (name="foreignKey")
+    - @OneToMany
+- Getters
+    - Maps to columns like fields
+    - Alternative to annotating fields directly
+    
+ ####@Enbeddable   
+ - One row can be mapped to multiple entities
+ - Eg. Person, which is one DB table contains personal info as well as address info
+ - Address can be embedded in Person entity
+    - Address as separate entity annotated with @Embeddable
+    - In Person class, Address field is annotated with @Embedded
+    - Can use @AttributeOverride annotation to specifi mappings from columns to fields
+    
+##JPA Queries
+
+####By Primary key
+- entityManager.find(Person.class, personId)
+- Returns null if no item found
+- Uses generics - no cast needed
+
+####JPQL Queries
+- JPQL - JPA Query Language
+
+```java
+TypedQuery<Person> query = entityManager.createQuery("select p from Person p where p.firstname = :firstName", Person.class); 
+query.setParameter("firstName", "John");
+List<Person> persons = query.getResultList();
+
+List<Customer> persons = entityManager.createQuery("select p from Person p where p.firstname = :firstName", Person.class).setParameter("firstName", "John").getResultList();
+
+Person person = query.getSingleResult();
+```
+
