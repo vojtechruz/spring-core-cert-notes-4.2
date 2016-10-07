@@ -1878,3 +1878,126 @@ jdbcTemplate.query(sqlStatement, resultExtractor, param1, param2);
 ```java
 numberOfAffectedRows = jdbcTemplate.update(sqlStatement, param1, param2);
 ```
+
+#Transactions
+- Set of operations that take place as a single atomic unit - all or nothing
+    - E.g. Money transfer operation consists of deducting money from source account and adding them to the target account. If one part fails, other cannot be performed.
+- ACID
+    - Atomic - All operations are performed or none of them
+    - Consistent - DB integrity constraints are not violated
+    - Isolated - Transactions are isolated form each other
+    - Durable - Commited changes are permanent
+- When in transaction, one connection should be reused for the whole transaction
+    
+##Java Transaction Management
+- Local transaction - One resource is involved, transaction managed by resource itself (eg. JDBC)
+- Global transaction - Multiple diferent resources involved in transaction, transaction managed by external Transaction Manager
+(e.g. JMS + two different databases)
+- Multiple modules supporting transactions - JDBC, JPA, JMS, JTA, Hibernate
+- Different API for global transactions and local transactions
+- Different modules have different transaction api
+- Usually programatic transaction management - not declarative as in spring - need to call eg. begin transactions, commit, etc.
+- Transaction management is cross-cutting concern and should be centralised instead scattered across all the classes
+- Transaction demarcation should be independent on actual transaction implementation
+- Should be done in service layer instead of data access layer
+
+##Spring Transaction Management
+- Declarative transaction management instead of programatic
+- Transaction declaration independent on transaction implementation
+- Same API for global and local transactions
+- Hides implementation details
+- Can easily switch transaction managers
+- Can easily upgrade local transaction to global
+- To enable transaction management in spring
+    - enable transaction management
+        - Java - @EnableTransactionManagement
+        - [A] `<tx:annotation-driven/>` in xml
+    - Declare a PlatformTransactionManager bean - "transactionManager" is default bean name
+    - Mark methods as transactional (java or xml)
+    
+####Transaction Manager
+- Spring provides many implementations of PlatformTransactionManager interface
+    - JtaTransactionManager
+    - JpaTransactionManager
+    - HibernateTransactionManager
+    - DataSourceTransactionManager
+    - ...
+```java 
+@Configuration
+@EnableTransactionManagement
+public class TransactionConfiguration {
+
+    @Bean
+    public PlatformTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }   
+```   
+    
+    
+####@Transactional
+- Methods which require to be run in transaction should be annotated with @Transactional    
+- Object is wrapped in a proxy 
+    - Around advice is used
+    - Before entering method a transaction is started
+    - If everything goes somoothly, there is commit once the method is finished
+    - If method throws RuntimeException, rollback is performed, transaction is not commited
+- Can be applied either to method level or class level. If on class level, applies to all the methods declared by 
+implementing interfaces (!). Can be also applied to interface or parent class.
+- Can combine method level and class level on the same class. Method level configuration then overrides class level.
+- If a test method is annotated @Transactional, it is ran in transaction and rolled back after finished
+    - Can be both on method and class level
+    - Can add @Commit annotation on method level to override @Transactional on test class level
+
+##Isolation Levels
+- 4 isolation levels available (from least strict to the most strict)
+    1. READ_UNCOMMITTED
+    2. READ_COMMITTED
+    3. REPEATABLE_READ
+    4. SERIALIZABLE
+- Not all isolation levels may be supported in all databases
+- Different databases may implement isolation is slightly different ways    
+    
+####READ_UNCOMMITTED
+- @Transactional (isolation=Isolation.READ_UNCOMMITTED)
+- The lowest isolation level
+- Dirty reads can occur - one transaction may be able to see uncommitted data of other transaction
+- May be viable for large transactions or frequently changing data
+
+####READ_COMMITTED
+- @Transactional (isolation=Isolation.READ_COMMITTED)
+- Default isolation strategy for many databases    
+- Other transactions can see data only after it is properly committed
+- Prevents dirty reads
+
+####REPEATABLE_READ
+- @Transactional (isolation=Isolation.REPEATABLE_READ)
+- Prevents non-repeatable reads - when a row is read multiple times in a single transaction, its value is guaranteed to be the same
+
+####SERIALIZABLE
+- @Transactional (isolation=Isolation.SERIALIZABLE)
+- Prevents phantom reads 
+
+
+##Transaction Propagation
+- Happens when code from one transaction calls another transaction
+- Transaction propagation says whether everything should be run in single transaction or nested transactions should be used
+- There are 7 levels of propagation
+- 2 Basic ones - REQUIRED and REQUIRES_NEW
+
+####REQUIRED
+- @Transactional(propagation=Propagation.REQUIRED) 
+- Default value if not specified otherwise
+- If there is already transaction, new @Transacional code is run in existing transaction, otherwise a new transaction is created
+
+####REQUIRES_NEW
+- @Transactional(propagation=Propagation.REQUIRES_NEW)
+- If there is no transaction, a new one is created
+- If there already is a transaction, it is suspended and a new transaction is created
+
+##Rollback
+- By default rollback is performed if RuntimeException (or any subtype) is thrown in @Transactional method
+- This can be overriden by  rollbackFor and noRollbackFor attributes
+```java
+@Transactional(rollbackFor=MyCheckedException.class, noRollbackFor={FooException.class, BarException.class})
+```
+
