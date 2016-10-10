@@ -2168,13 +2168,78 @@ public class JpaPersonRepository implements PersonRepository {
     private EntityManager entityManager;
     
     @PersistenceContext
-    public void setEntityManager (EntityManager entityManager) { 
-        this. entityManager = entityManager;
+    public void setEntityManager(EntityManager entityManager) { 
+        this.entityManager = entityManager;
     }
 
     //Use EntityManager to perform queries
             
-    //If this repository is not annotated as spring component (@Repository), and explicitly declared in @configuration
+    //If this repository is not annotated as spring component (@Repository), and explicitly declared in @Configuration
     //file, there is no spring dependency in the DAO layer - @PersistenceContext is from javax.persistence
 }
 ```
+
+##JPA With Spring Data
+- Simplifies data access by reducing boilerplate code
+- Consists of core project and many subprojects for various data access technologies - JPA, Gemfire, MongoDB, Hadoop, ...
+
+1. Domain classes are annotated as usual
+2. Repositories are defined just as interfaces (extending specific Spring interface), which will be dynamically implemented by spring
+
+####Spring data Domain Classes
+- For JPA nothing changes, classes are annotated as usual - @Entity
+- Specific data stores have their own specific annotations 
+    - MongoDB - @Document
+    - Gemfire - @Region
+    - Neo4J - @NodeEntity, @GraphId
+
+####Spring data Repositories
+- Spring searches for all interfaces extending `Repository<DomainObjectType, DomainObjectIdType>`
+- Repository is just marker interface and has no method on its own
+- Can annotated methods in the interface with @Query("Select p from person p where ...")
+- Can extend `CrudRepository` instead of `Repository` -  added methods for CRUD
+    - Method names generated automatically based on naming convention
+    - findBy + Field (+ Operation)
+    - `FindByFirstName(String name)`, `findByDateOfBirthGt(Date date)`, ...
+    - Operations - Gt, Lt, Ne, Like, Between, ...
+- Can extend `PagingAndSortingRepository` - added sorting and paging
+- Most Spring data sub-projects have their own variations of `Repository`
+    - `JpaRepository` for JPA
+- Repositories can be injected by type of their interface
+```java
+public interface PersonRepository extends Repository<Person, Long> {}
+    
+@Service    
+public class PersonService {
+
+    @Autowired
+    private PersonRepository personRepository;
+            
+    ...
+}   
+``` 
+    
+####Repository lookup
+- Locations, where spring should look for `Repository` interfaces need to be explicitly defined
+    
+```java
+@Configuration 
+@EnableJpaRepositories(basePackages="com.example.**.repository") 
+public class JpaConfig {...}
+
+@Configuration 
+@EnableGemfireRepositories(basePackages="com.example.**.repository")
+public class GemfireConfig {...}
+  
+@Configuration 
+@EnableMongoRepositories(basePackages="com.example.**.repository") 
+public class MongoDbConfig {...}
+
+```    
+
+```xml
+<jpa:repositories base-package="com.example.**.repository" /> 
+<gfe:repositories base-package="com.example.**.repository" />
+<mongo:repositories base-package="com.example.**.repository" /> 
+```
+
