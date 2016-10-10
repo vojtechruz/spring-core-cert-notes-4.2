@@ -2147,3 +2147,34 @@ List<Customer> persons = entityManager.createQuery("select p from Person p where
 Person person = query.getSingleResult();
 ```
 
+- Criteria Queries
+- Native Queries - JDBC template preferred instead
+
+
+##JPA DAOs
+- JPA DAOs in Spring
+    - Transactions are handled in Service Layer - Services wrapped in AOP proxies - Spring TransactionInterceptor in invoked
+    - TransactionInterceptor delegates to TransactionManager (JpaTransactionManager, JtaTransactionManager)
+    - Services call DAOs with no spring dependency
+    - Services are injected with AOP proxied EntityManager
+    - Proxied EntityManager makes sure queries are properly joined into active transaction
+- DAO implementations have no spring dependencies
+- Can use AOP for exception translation - JPA exceptions translated to Spring DataAccessExceptions
+- Can use @PersistenceContext annotation to inject EntityManager proxy
+
+```java
+public class JpaPersonRepository implements PersonRepository { 
+
+    private EntityManager entityManager;
+    
+    @PersistenceContext
+    public void setEntityManager (EntityManager entityManager) { 
+        this. entityManager = entityManager;
+    }
+
+    //Use EntityManager to perform queries
+            
+    //If this repository is not annotated as spring component (@Repository), and explicitly declared in @configuration
+    //file, there is no spring dependency in the DAO layer - @PersistenceContext is from javax.persistence
+}
+```
