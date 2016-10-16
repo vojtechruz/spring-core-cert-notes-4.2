@@ -7,19 +7,19 @@
 - Enables easy switching of dependencies based en current needs - local development vs production environment, 
 easy mocking for unit tests, in memory database vs production one, etc.
 - Promotes programming to interfaces
-- Spring managed objects are called "beans"
+- Spring-managed objects are called "beans"
 - Beans are written as POJOs, no need to inherit Spring base classes or implement spring interfaces
-- Classes can be completely independent on Spring framework (although for convenience Spring annotations are often used)
-- Lifecycle of beans is managed centrally by Spring container (eg. enforces singleton state of bean/ one isntance pers session. one instance per http request/...)
-- Spring configuration (incl. DI) is possible either via xml or Java configuration files (newer, more popular approach)
+- Classes can be completely independent of Spring framework (although for convenience Spring annotations are often used)
+- Lifecycle of beans is managed centrally by Spring container (eg. enforces singleton state of bean/ one instance pers session. one instance per HTTP request/...)
+- Spring configuration (including DI) is possible either via XML or Java configuration files (newer, more popular approach)
 
 ##Spring Application Context
 - Spring beans are managed by Application Context (container)
-- Application context is initialized with one or more configuration files (java or xml), which contains setting for framework, DI, persistence, transactions,...
+- The application context is initialized with one or more configuration files (java or XML), which contains setting for the framework, DI, persistence, transactions,...
 - Application context can be also instantiated in unit tests
 - Ensures beans are always created in right order based on their dependencies
 - Ensures all beans are fully initialized before the first use
-- Each bean has its unique identificator, by which it can be later referenced (should not contain specific implementation details, based on circumstances different implementations can be provided)
+- Each bean has its unique identifier, by which it can be later referenced (should not contain specific implementation details, based on circumstances different implementations can be provided)
 - No need for full fledged java EE application server
 
 
@@ -44,7 +44,7 @@ easy mocking for unit tests, in memory database vs production one, etc.
 - new FileSystemXmlApplicationContext(“C:/Users/vojtech/app-config.xml”);
 - new FileSystemXmlApplicationContext(“./app-config.xml”);
 
-####Obtaining beans form Application Context
+####Obtaining beans from Application Context
 ```java
     //Obtain bean by type
     applicationContext.getBean(MyBean.class);
@@ -68,14 +68,14 @@ easy mocking for unit tests, in memory database vs production one, etc.
 
 
 # Spring Configuration
-- can be xml or java based
+- can be XML or java based
 - Externalized from the bean class → separation of concerns
 
 ##Externalizing Configuration Properties
-- Configuration values (DB connection, external endpoints, ...) should not be hardcoded in the configuration files
+- Configuration values (DB connection, external endpoints, ...) should not be hard-coded in the configuration files
 - Better to externalize to, eg. to .properties files
 - Can then be easily changed without a need to rebuild application
-- Can have different values on different environments (eg. different db instance on each environment)
+- Can have different values on different environments (eg. different DB instance on each environment)
 - Spring provides abstraction on top of many property sources
     - JNDI
     - Java .properties files
@@ -122,7 +122,7 @@ public class ApplicationConfiguration {
 - ${} is for properties, #{} is for SpEL
 - Access property of bean #{beanName.property}
 - Can reference systemProperties and systemEnvironment
-- Used in other spring project such as Security, Integration, Batch, WebFlow,...
+- Used in other spring projects such as Security, Integration, Batch, WebFlow,...
 
 ####Spring profiles
 - Beans can have associated profile (eg. "local", "staging", "mock")
@@ -152,7 +152,7 @@ public class LocalConfig {
 - Preferred way is to divide configuration to multiple files and then import them when used
 - Usually based on application layers - web layer, service layer, DAO layer,...
 - Enables better configuration organization
-- Enables to separate layers, which often change based on environment, etc. - eg. switching services for mocks in unit tests, having in-memory database, ...
+- Enables to separate layers, which often change based on environment, etc. - eg. switching services for mocks in unit tests, having an in-memory database, ...
 - Can import other config files in java config using @Import annotation
 ```java
 @Configuration
@@ -163,7 +163,7 @@ public class ApplicationConfiguration {
 
 ```
 - Beans defined in another @Configuration file can be injected using @Autowired annotation on field or setter level, cannot use constructors here
-- Another way of referencing beans form other @Configuration is to declare them as method parameters of defined beans in current config file
+- Another way of referencing beans from another @Configuration is to declare them as method parameters of defined beans in current config file
 ```java
 @Configuration
 @Import({WebConfiguration.class, InfrastructureConfiguration})
@@ -176,7 +176,7 @@ public class ApplicationConfiguration {
         return myBean;
     }
 ```
-- In case multiple beans of the same type are found among configuration, spring injects the one, which is discovered as the last
+- In case multiple beans of the same type are found in configuration, spring injects the one, which is discovered as the last
 
 ##Java Configuration
 - In Java classes annotated with @Configuration on class level
@@ -224,7 +224,7 @@ public class ApplicationConfiguration {
 #### Autowired conflicts
 - If no bean of given type for @Autowired dependency is found and it is not optional, exception is thrown
 - If more beans satisfying the dependency is found, NoSuchBeanDefinitionException is thrown as well
-- Can use @Qualifier annotation to inject bean by name, the name can be defiend inside component annotation - @Component("myName")
+- Can use @Qualifier annotation to inject bean by name, the name can be defined inside component annotation - @Component("myName")
 ```java
 @Component("myRegularDependency")
 public class MyRegularDependency implements MyDependency {...}
@@ -253,7 +253,7 @@ When a bean name is not specified, one is auto-generated: De-capitalized non-qua
 
 
 ####Explicit bean declaration
-- Class is explicitly marked as spring managed bean in @Configuration class (similiar concept is in xml config)
+- Class is explicitly marked as spring managed bean in @Configuration class (similar concept is in XML config)
 - All settings of the bean are present in the @Configuration class in the bean declaration
 - Spring config is completely in the @Configuration, bean is just POJO with no spring dependency
 - Cleaner separation of concerns
@@ -289,11 +289,11 @@ public class ApplicationConfiguration {
 - Component scan
     - Config is scattered across many classes
     - Cannot be used for third party classes
-    - Code and configuration violates single responsibility principle, bad separations of concerns
+    - Code and configuration violate single responsibility principle, bad separations of concerns
     - Good for rapid prototyping and frequently changing code
     
 ####@PostConstruct, @PreDestroy
-- Can be used on @Components's methods
+- Can be used on @Component's methods
 - Methods can have any access modifier, but no arguments and return void
 - Applies to both beans discovered by component scan and declared by @Bean in @Configuration
 - Defined by JSR-250, not Spring (javax.annotation package)
@@ -343,7 +343,7 @@ public class ApplicationConfiguration {
 
 ##XML Configuration
 - Original form of configuration in Spring
-- External configuration in xml files
+- External configuration in XML files
 - Beans are declared inside \<beans\> tag
 - Can be combined with java config
     - Xml config files can be imported to @Configuration using @ImportResource
@@ -440,7 +440,7 @@ http://www.springframework.org/schema/beans/spring-beans.xsd>
     - `<tx:annotation-driven />` Enables Transactions (15+ beans)
 - XML Schema files can have version specified (spring-beans-4.2.xsd) or not (spring-beans.xsd)
     - If version not specified, most recent is used
-    - Usually no version number is preferred as it means easier upgrade to newer framework version
+    - Usually, no version number is preferred as it means easier upgrade to newer framework version
     
 #### Accessing properties in xml
 - Equivalent of @Value in xml
@@ -470,7 +470,7 @@ Can load different property files based on spring profiles
 
 #Spring Application Lifecycle
 - Three main phases - Initialization, Use, Destruction
-- Lifecycle independent on configuration style used (java / xml)
+- Lifecycle independent on configuration style used (java / XML)
 
 ##Initialization phase
 - Application is prepared for usage
@@ -500,7 +500,7 @@ Can load different property files based on spring profiles
 - Custom BFPPs can be created by implementing BeanFactoryPostProcessor interface
         
 ####Instatiating beans
-- Spring creates beans eagerly by default, unless declared as @Lazy (or lazy-init in xml)
+- Spring creates beans eagerly by default unless declared as @Lazy (or lazy-init in XML)
 - Beans are created in right order to satisfy dependencies
 - After a bean is instantiated, it may be post-processed (similar to bean definitions)
 - One kind of post-processors are Initializers - @PostConstruct/init-method
@@ -514,7 +514,7 @@ public interface BeanPostProcessor {
 ```
 Note that return value is the post-processed bean. It may be the bean with altered state, however, it may be completely new object.
 It is very important - post processor can return proxy of bean instead of original one - used a lot in spring - AOP, Transactions, ...
-Proxy can add dynamic hehavior such as security, logging or transactions without its consumers knowing.
+A proxy can add dynamic behavior such as security, logging or transactions without its consumers knowing.
 
 ####Spring Proxies
 - Two types of proxies
@@ -524,7 +524,7 @@ Proxy can add dynamic hehavior such as security, logging or transactions without
     - All interfaces implemented by the class are proxied
     - Based on proxy implementing interfaces
 - CGLib proxies
-    - Not part of JDK, included in spring
+    - Is not part of JDK, included in spring
     - Used when class implements no interface
     - Cannot be applied to final classes or methods
     - Based on proxy inheriting the base class
@@ -616,7 +616,7 @@ public final class FooTest  {
     - Caching
     - Error handling
     - ...
-- Keeps good separation of concerns, does not violae single responsibility principle
+- Keeps good separation of concerns, does not violate single responsibility principle
 - Solves two main problems
     - Code Tangling - Coupling of different concerns in one class - eg. business logic coupled with security and logging
     - Code scattering - Same code scattered among multiple classes, code duplication - eg. same security logic in each class
@@ -641,7 +641,7 @@ Writing AOP Apps
         - AOP is not applied when one method of the class calls method on the same class (will bypass the proxy)
     
 ##AOP Concepts
-- Join Point - A point in the execution of the app, where aop code will be applied - method call, exception thrown
+- Join Point - A point in the execution of the app, where AOP code will be applied - method call, exception thrown
 - Pointcut - Expression that matches one or multiple Join Points
 - Advice - Code to be executed at each matched Join Point
 - Aspect - Module encapsulating Pointcut and Advice
@@ -703,7 +703,7 @@ public class MyAspect {
 ####After throwing
 - Called after target method invocation throws an exception
 - Exception object being thrown from target method can be injected to the annotated method using `throwing` param
-- It will not stop exception from propagating, but can throw another exception
+- It will not stop exception from propagating but can throw another exception
 - Stopping exception from propagating can be achieved using @Around advice
 - @AfterThrowing(value="expression", throwing="paramName")
 
@@ -715,7 +715,7 @@ public class MyAspect {
 ```
 
 ####After
-- Called after target method invocation, no matter whether it was succesfull or there was an exception
+- Called after target method invocation, no matter whether it was successful or there was an exception
 - @After("expression")
 
 ####Around
@@ -782,11 +782,11 @@ public void setters() {
 - Representational State Transfer
 - Architectural style
 - Stateless (clients maintains state, not server), scalable; → do not use HTTP session
-- Usually over http, but not necessarily
+- Usually over HTTP, but not necessarily
 - Entities (e.g. Person) are resources represented by URIs
 - HTTP methods (GET, POST, PUL, DELETE) are actions performed on resource (like CRUD)
 - Resource can have multiple representations (different content type)
-- Request specifies desired representation using HTTP Accept header, extension in url (.json) or parameter in url (format=json)
+- Request specifies desired representation using HTTP Accept header, extension in URL (.json) or parameter in URL (format=json)
 - Response states delivered representation type using Content-Type HTTP header
 
 ##HATEOAS
@@ -826,7 +826,7 @@ public class PersonService {
     - @RequestMapping(value="/foo", method=RequestMethod.POST)
 - @ResponseStatus can set HTTP response status code
     - If used, void return type means no View (empty response body) and not default view!
-    - 2** - sucess (201 Created, 204 No Content,...)
+    - 2** - success (201 Created, 204 No Content,...)
     - 3** - redirect
     - 4** - client error (404 Not found, 405 Method Not Allowed, 409 Conflict,...)
     - 5** - server error
@@ -873,9 +873,9 @@ String childUrl = template.expand(childIdentifier).toASCIIString();
     - Each microservice has separate development, testing and deployment
     - Each microservice can be developed by separate team
     - Harder to build
-    - Easier to exten and maintain
+    - Easier to extend and maintain
     - Easier to scale up
-    - Easy to deploy or update just one microserivce instead of whole monolith
+    - Easy to deploy or update just one microservice instead of the whole monolith
 - One microservice usually consists of several services in service layer and corresponding data store
 - Microservices are well suited to run in the cloud
     - Easily manage scaling - number of microservice instances
@@ -936,15 +936,15 @@ logging.level.com.netflix.discovery=OFF
 ####Microservice Registration
 - Annotate @SpringBootApplication with @EnableDiscoveryClient
 - Each microservice is a spring boot app
-- Fill in application.properties with app name and eureka server url
+- Fill in application.properties with app name and eureka server URL
     - `spring.application.name` is name of the microservice for discovery
     - `eureka.client.serviceUrl.defaultZone` is URL of the Eureka server
     
 ####Microservice Usage
-- Also annotate client app using microservice (@SpringBootApplication) with @EnableEurekaServer
+- Annotate client app using microservice (@SpringBootApplication) with @EnableEurekaServer
 - Clients call Microservice using "smart" RestTemplate, which manages load balancing and automatic service lookup
 - Inject RestTemplate using @Autowired with additional @LoadBalanced
-- "Ribbon" service by netflix provides load balancing
+- "Ribbon" service by Netflix provides load balancing
 - RestService automatically looks up microservice by logical name and provides load-balancing
     
 ```java
@@ -961,7 +961,7 @@ restTemplate.getForObject("http://persons-microservice-name/persons/{id}", Perso
 #Spring Security
 - Independent on container - does not require EE container, configured in application and not in container
 - Separated security from business logic
-- Decoupled authorisation from authentication
+- Decoupled authorization from authentication
 - Principal - User, device, or system that is performing and action
 - Authentication
     - Process of checking identity of a principal (credentials are valid)
@@ -1145,7 +1145,7 @@ Login JSP Form
  
 ##Method Security
 - Methods (e.g. service layer) can be secured using AOP
-- JSR-250 or Spring annotations or pre/post authorise
+- JSR-250 or Spring annotations or pre/post authorize
  
 ####JSR-250
 - Only supports role based security
@@ -1181,7 +1181,7 @@ Login JSP Form
 - Spring web layer on top of regular spring application layer
 - Initialized using regular servlet listener
 - Can be configured either in web.xml or using AbstractContextLoaderInitializer - implements WebApplicationInitializer, 
-which is automatically recognized and processed by servlet container (Sevrlets 3.0+)
+which is automatically recognized and processed by servlet container (Servlets 3.0+)
 
 ##Basic configuration
 AbstractContextLoaderInitializer
@@ -1252,17 +1252,17 @@ public class MyServlet extends HttpServlet {
 - Handles browser back button
 - Handles double submit problem
 - Support custom scopes of beans - flow scope, flash scope, ...
-- Configuration of flows defined in xml
+- Configuration of flows defined in XML
     - Defines flow states - view, action, end,  ...
     - Defines transition between states
     
 #Spring MVC    
 - Spring Web Framework based on Model-View-Controller pattern
 - Alternative to JSF, Struts, Wicket, Tapestry, ...
-- Components such as Controllers are Spring managed beans
+- Components such as Controllers are Spring-managed beans
 - Testable POJOs
 - Uses Spring Configuration
-- Supports wide range of view technologies - JSP, Freemarker, Velocity, Thymeleaf, ...
+- Supports a wide range of view technologies - JSP, Freemarker, Velocity, Thymeleaf, ...
 
 
 ##Dispatcher Servlet
@@ -1332,14 +1332,14 @@ public String foo(@PathVariable("personId") String personId) {
 - Some parameters injects spring by type - HttpServletRequest, HttpServletResponse, Principal, HttpSession, ...
 
 ##Views
-- Views reder output to the client based on data in the model
+- Views render output to the client based on data in the model
 - Many built-in supported view technologies - Freemarker, Velocity, JSP, ...
 - ViewResolver selects specific View based on logical view name returned by the controller methods
 
 ####View Resolver
 - Translates logical view name to actual View
 - This way controller is not coupled to specific view technology (returns only logical view name)
-- Default View resolver already configured is InternalResourceViewResolver, which is used to render JSPs (JstlView). Configures prefix and suffix to logical view name which then results to path to specific JSP.
+- Default View resolver already configured is InternalResourceViewResolver, which is used to render JSPs (JstlView). Configures prefix and suffix to logical view name which then results in a path to specific JSP.
 - Can register custom resolvers
 
 ####View Resolution Sequence
@@ -1364,7 +1364,7 @@ public String foo(@PathVariable("personId") String personId) {
 #Spring Boot
 ##Basics
 - Convention over configuration - pre-configures Spring app by reasonable defaults, which can be overridden
-- Maven and gradle integration
+- Maven and Gradle integration
 - MVC enabled by having spring-boot-starter-web as a dependence
     - Registers Dispatcher servlet
     - Does same as @EnableWebMvc + more
@@ -1377,7 +1377,7 @@ public String foo(@PathVariable("personId") String personId) {
 ##@SpringBootApplication
 - Main Class annotated with @SpringBootApplication, can be run as a jar with embedded application server (Tomcat by default, can be changed for example to Jetty or Undertow)
 - Actually consists of three annotations @Configuration, @EnableAutoConfiguration and @ComponentScan
-- @EnableAutoConfiguration configures modules based on presence of certain classes on class path - based on @Conditional
+- @EnableAutoConfiguration configures modules based on presence of certain classes on classpath - based on @Conditional
 - Manually declared beans usually override beans automatically created by AutoConfiguration (@ConditionalOnMissingBean is used), usually bean type and not name matters
 - Can selectively exclude some AutoConfigutation classes `@EnableAutoConfiguration(exclude=DataSourceAutoConfiguration.class)`
 
@@ -1398,7 +1398,7 @@ public class Application extends SpringBootServletInitializer {
 ```
 ##Dependencies
 - Need to add proper maven parent and dependencies
-- Using "starter" module dependencies → as transitive dependencies bundles versions which are tested to work well together
+- Using "starter" module dependencies → using transitive dependencies bundles versions which are tested to work well together
     - Can override version of specific artifacts in pom.xml
 ```xml
 <properties>
@@ -1424,8 +1424,8 @@ public class Application extends SpringBootServletInitializer {
 
 ##Application Configuration
 
-- Application configuration is externalised by default to application.properties file
-- alternatively can use YAML configuration - application.yml by default
+- Application configuration is externalized by default to application.properties file
+- Alternatively, can use YAML configuration - application.yml by default
 - Located in workingdirectory/config or working directory or classpath/config or classpath
 - PropertySource automatically created
 - Properties 
@@ -1633,7 +1633,7 @@ public DataSource dataSource() {
 }
 ```
 
-Or in xml
+Or in XML
 
 ```xml
 <jdbc:embedded-database id="dataSource" type="HSQL"> 
@@ -1769,7 +1769,7 @@ Gemfire
 
 #JDBC with Spring
 - Using traditional JDBC connection has many disadvantages
-    - Lot of boiletplate code
+    - Lot of boilerplate code
     - Poor exception handling (cannot really react to exceptions)
 - Spring JDBC Template to the rescue
 - Implementing template method pattern
@@ -1886,24 +1886,24 @@ numberOfAffectedRows = jdbcTemplate.update(sqlStatement, param1, param2);
 - ACID
     - Atomic - All operations are performed or none of them
     - Consistent - DB integrity constraints are not violated
-    - Isolated - Transactions are isolated form each other
-    - Durable - Commited changes are permanent
+    - Isolated - Transactions are isolated from each other
+    - Durable - Committed changes are permanent
 - When in transaction, one connection should be reused for the whole transaction
     
 ##Java Transaction Management
 - Local transaction - One resource is involved, transaction managed by resource itself (eg. JDBC)
-- Global transaction - Multiple diferent resources involved in transaction, transaction managed by external Transaction Manager
+- Global transaction - Multiple different resources involved in transaction, transaction managed by external Transaction Manager
 (e.g. JMS + two different databases)
 - Multiple modules supporting transactions - JDBC, JPA, JMS, JTA, Hibernate
 - Different API for global transactions and local transactions
-- Different modules have different transaction api
-- Usually programatic transaction management - not declarative as in spring - need to call eg. begin transactions, commit, etc.
-- Transaction management is cross-cutting concern and should be centralised instead scattered across all the classes
+- Different modules have different transaction API
+- Usually programmatic transaction management - not declarative as in spring - need to call eg. begin transactions, commit, etc.
+- Transaction management is cross-cutting concern and should be centralized instead scattered across all the classes
 - Transaction demarcation should be independent on actual transaction implementation
 - Should be done in service layer instead of data access layer
 
 ##Spring Transaction Management
-- Declarative transaction management instead of programatic
+- Declarative transaction management instead of programmatic
 - Transaction declaration independent on transaction implementation
 - Same API for global and local transactions
 - Hides implementation details
@@ -1936,16 +1936,16 @@ public class TransactionConfiguration {
     
     
 ####@Transactional
-- Methods which require to be run in transaction should be annotated with @Transactional    
+- Methods which require being run in transaction should be annotated with @Transactional    
 - Object is wrapped in a proxy 
     - Around advice is used
     - Before entering method a transaction is started
-    - If everything goes somoothly, there is commit once the method is finished
-    - If method throws RuntimeException, rollback is performed, transaction is not commited
+    - If everything goes smoothly, there is commit once the method is finished
+    - If method throws RuntimeException, rollback is performed, transaction is not committed
 - Can be applied either to method level or class level. If on class level, applies to all the methods declared by 
 implementing interfaces (!). Can be also applied to interface or parent class.
 - Can combine method level and class level on the same class. Method level configuration then overrides class level.
-- If a test method is annotated @Transactional, it is ran in transaction and rolled back after finished
+- If a test method is annotated @Transactional, it is run in transaction and rolled back after finished
     - Can be both on method and class level
     - Can add @Commit annotation on method level to override @Transactional on test class level
 
@@ -2097,8 +2097,8 @@ Or entityManagerFactory XML Equivalent
 - In spring configuration of persistence unit can be either in spring configuration, persistence unit itself or combination
 
 ##JPA Mapping
-- Metadata required to determine mapping of class fields to DB columns
-- Can be done using either annotations or xml (orm.xml)
+- Metadata is required to determine mapping of class fields to DB columns
+- Can be done using either annotations or XML (orm.xml)
 - Many defaults provided - configuration needed only when differs from the defaults
 
 ####Can annotate
@@ -2126,7 +2126,7 @@ Or entityManagerFactory XML Equivalent
  - Address can be embedded in Person entity
     - Address as separate entity annotated with @Embeddable
     - In Person class, Address field is annotated with @Embedded
-    - Can use @AttributeOverride annotation to specifi mappings from columns to fields
+    - Can use @AttributeOverride annotation to specify mappings from columns to fields
     
 ##JPA Queries
 
@@ -2157,7 +2157,7 @@ Person person = query.getSingleResult();
     - Transactions are handled in Service Layer - Services wrapped in AOP proxies - Spring TransactionInterceptor in invoked
     - TransactionInterceptor delegates to TransactionManager (JpaTransactionManager, JtaTransactionManager)
     - Services call DAOs with no spring dependency
-    - Services are injected with AOP proxied EntityManager
+    - Services are injected with AOP-proxied EntityManager
     - Proxied EntityManager makes sure queries are properly joined into active transaction
 - DAO implementations have no spring dependencies
 - Can use AOP for exception translation - JPA exceptions translated to Spring DataAccessExceptions
@@ -2197,7 +2197,7 @@ public class JpaPersonRepository implements PersonRepository {
 ####Spring data Repositories
 - Spring searches for all interfaces extending `Repository<DomainObjectType, DomainObjectIdType>`
 - Repository is just marker interface and has no method on its own
-- Can annotated methods in the interface with @Query("Select p from person p where ...")
+- Can annotate methods in the interface with @Query("Select p from person p where ...")
 - Can extend `CrudRepository` instead of `Repository` -  added methods for CRUD
     - Method names generated automatically based on naming convention
     - findBy + Field (+ Operation)
@@ -2243,4 +2243,3 @@ public class MongoDbConfig {...}
 <gfe:repositories base-package="com.example.**.repository" />
 <mongo:repositories base-package="com.example.**.repository" /> 
 ```
-
