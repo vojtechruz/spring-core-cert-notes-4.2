@@ -163,7 +163,7 @@ public class ApplicationConfiguration {
 
 ```
 - Beans defined in another @Configuration file can be injected using @Autowired annotation on field or setter level, cannot use constructors here
-- Another way of referencing beans form other @configuration is to declare them as method parameters of defined beans in current config file
+- Another way of referencing beans form other @Configuration is to declare them as method parameters of defined beans in current config file
 ```java
 @Configuration
 @Import({WebConfiguration.class, InfrastructureConfiguration})
@@ -176,7 +176,7 @@ public class ApplicationConfiguration {
         return myBean;
     }
 ```
-- In case multiple same beans are found among configuration, spring injects the one, which is discovered as the last
+- In case multiplebeans of the same type are found among configuration, spring injects the one, which is discovered as the last
 
 ##Java Configuration
 - In Java classes annotated with @Configuration on class level
