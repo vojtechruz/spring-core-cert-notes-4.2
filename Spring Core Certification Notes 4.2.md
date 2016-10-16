@@ -625,7 +625,7 @@ Writing AOP Apps
 
 1. Write main application logic
 2. Write Aspects to address cross-cutting concerns
-3. Weave aspects into the application, to be applied in right places
+3. Weave aspects into the application to be applied in right places
 
 ##AOP Technologies
 - AspectJ
@@ -664,6 +664,7 @@ public class MyAspect {
     public void beforeSet() {
         //Do something before each setter call
     }
+}    
 ```
 
 ##Pointcuts
@@ -680,7 +681,7 @@ public class MyAspect {
     - `execution(@javax.annotation.security.RolesAllowed void find(..))` - Any method returning void named "find" annotated with specified annotation
     - `execution(* com.*.example.*.*(..))` - Exactly one directory between com and example 
     - `execution(* com..example.*.*(..))` - Zero or more directoryies between com and example
-    - execution(* *..example.*.*(..)) - Any sub-package called "Example"
+    - `execution(* *..example.*.*(..))` - Any sub-package called "Example"
     
     
 ##Advice Types
@@ -692,10 +693,10 @@ public class MyAspect {
 ####After returning
 - Executes after successful target method invocation
 - If advice throws an exception, target is not called
-- Return value of target method can be injected to the annotated method using `rewarding` param
+- Return value of target method can be injected to the annotated method using `returning` param
 - @AfterReturning(value="expression", returning="paramName")
 ```java
-  @AfterReturning(value="execution(* service..*.*(..))", returning="retVal")
+    @AfterReturning(value="execution(* service..*.*(..))", returning="retVal")
     public void doAccessCheck(Object retVal) {
         //...
     }
@@ -709,7 +710,7 @@ public class MyAspect {
 - @AfterThrowing(value="expression", throwing="paramName")
 
 ```java
-  @AfterThrowing(value="execution(* service..*.*(..))", throwing="exception")
+    @AfterThrowing(value="execution(* service..*.*(..))", throwing="exception")
     public void doAccessCheck(Exception exception) {
         //...
     }
@@ -740,7 +741,7 @@ public class MyAspect {
 ####[A]Named Pointcuts
 - Pointcut expressions can be named and then referenced
 - Makes pointcut expressions reusable
-- Pointcuts can be externalized to separate file
+- Pointcuts can be externalized to a separate file
 - Composite pointcuts can be split into several named pointcuts
 
 XML
@@ -774,7 +775,7 @@ public void setters() {
 ####[A] Context Selecting Pointcuts
 - Data from JoinPoint can be injected as method parameters with type safety
 - Otherwise they would need to be obtained from JoinPoint object with no type safety guaranteed
-- `@Pointcut(“execution(void example.Server.start(java.util.Map)) && target(instance) && args(input)”)`
+- `@Pointcut("execution(void example.Server.start(java.util.Map)) && target(instance) && args(input)")`
     - target(instance) injects instance on which is call performed to "instance" parameter of the method
     - args(input) injects target method parameters to "input" parameter of the method
     
@@ -782,7 +783,7 @@ public void setters() {
 #REST
 - Representational State Transfer
 - Architectural style
-- Stateless (clients maintains state, not server), scalable; → do not use HTTP session
+- Stateless (clients maintains state, not server), scalable → do not use HTTP session
 - Usually over HTTP, but not necessarily
 - Entities (e.g. Person) are resources represented by URIs
 - HTTP methods (GET, POST, PUL, DELETE) are actions performed on resource (like CRUD)
@@ -804,10 +805,10 @@ public void setters() {
 ```java
 @Path("/persons/{id}")
 public class PersonService {
-  @GET
-  public Person getPerson(@PathParam("id") String id) {
-    return findPerson(id);
-  }
+    @GET
+    public Person getPerson(@PathParam("id") String id) {
+        return findPerson(id);
+    }
 }
 ```
 
