@@ -328,7 +328,7 @@ Meta-annotations
     - If not provided, name is inferred from field name or tries injection by type if name fails
     - setAmount() → "amount" name 
 
-####[A] JSR-330
+####[A] JSR-330 - Dependency Injection for Java
 - Alternative DI annotations
 - Spring is valid JSR-330 implementation
 - @ComponentScan also scans for JSR-330 annotations
@@ -370,8 +370,8 @@ Conponent scan can be also used in XML
 - `value` attribute is used for setting primitive values, primitives are auto-converted to proper type
     - supports numeric types, BigDecimal, boolean, Date, Resource, Locale
 - Parameters can be in any order, are matched by type
-- If necessary, order can be defined - <constructor-arg ref="someBean" index="0"/>
-- Or using named constructor parameters - <constructor-arg ref="someBean" name="paramName"/>
+- If necessary, order can be defined - `<constructor-arg ref="someBean" index="0"/>`
+- Or using named constructor parameters - `<constructor-arg ref="someBean" name="paramName"/>`
     - Java 8+
     - OR compiled with debug-symbols enabled to preserve param names
     - OR @ConstructorProperties( { "firstParam", "secondParam" } ) on constructor - order of items matches order of constructor params
