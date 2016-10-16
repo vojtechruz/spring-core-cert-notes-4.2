@@ -4,7 +4,7 @@
 ##DI Basics
 - Reduces coupling between classes
 - Classes do not obtain their dependencies (collaborators), Spring container provides proper dependency based on configuration provided
-- Enables easy switching of dependencies based en current needs - local development automaticallyenvironment, 
+- Enables easy switching of dependencies based en current needs - local development vs production environment, 
 easy mocking for unit tests, in memory database vs production one, etc.
 - Promotes programming to interfaces
 - Spring managed objects are called "beans"
@@ -47,7 +47,7 @@ easy mocking for unit tests, in memory database vs production one, etc.
 ####Obtaining beans form Application Context
 ```java
     //Obtain bean by type
-    context.getBean(MyBean.class);
+    applicationContext.getBean(MyBean.class);
 ```
 
 
@@ -87,7 +87,7 @@ easy mocking for unit tests, in memory database vs production one, etc.
 - Environment can be injected using @Autowired annotation
 - properties are obtained using environment.getProperty("propertyName")
 
-####Obtainging properties using @Value annotation
+####Obtaining properties using @Value annotation
 - @Value("${propertyName}") can be used as an alternative to Environment object
 - can be used on fields on method parameters
 
