@@ -383,10 +383,10 @@ Conponent scan can be also used in XML
 ```
 
 #### Setter injection
-- using \<property\> tag
+- Using `<property\>` tag
 - `ref` or `value` like wit constructor injection
-- setter and constructor injection can be combined
-- can use \<value\> tag inside of \<property\>``
+- Setter and constructor injection can be combined
+- Can use `<value\>` tag inside of `<property\>`
 
 ```xml
 <bean id="fooBeanName" class="com.example.foo">
@@ -404,7 +404,7 @@ Conponent scan can be also used in XML
 - @PreDestroy is init to `destroy-method` attribute
 - @Scope is equivalent to `scope` attribute, singleton if not specified
 - @Lazy is equivalent to `lazy-init` attribute
-- @Profile is equivalent to `profile` attribute, on `<beans>` tag, `<beans>` tags can be nested
+- @Profile is equivalent to `profile` attribute on `<beans>` tag, `<beans>` tags can be nested
 ```xml
 <beans profile="barProfile">
     <beans profile="fooProfile">
@@ -442,8 +442,8 @@ http://www.springframework.org/schema/beans/spring-beans.xsd>
     - If version not specified, most recent is used
     - Usually, no version number is preferred as it means easier upgrade to newer framework version
     
-#### Accessing properties in xml
-- Equivalent of @Value in xml
+#### Accessing properties in XML
+- Equivalent of @Value in XML
 - Still need to declare PropertySourcesPlaceholderConfigurer
 - `<context:property-placeholder location="config.properties" />` from `context` namespace
 ```xml
