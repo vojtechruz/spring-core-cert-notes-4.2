@@ -502,7 +502,7 @@ Can load different property files based on spring profiles
 ####Instatiating beans
 - Spring creates beans eagerly by default unless declared as @Lazy (or lazy-init in XML)
 - Beans are created in right order to satisfy dependencies
-- After a bean is instantiated, it may be post-processed (similar to bean definitions)
+- After a bean is instantiated, it may be post-processed (similar to bean definitions post-processing)
 - One kind of post-processors are Initializers - @PostConstruct/init-method
 - Other post processors can be invoked either before initialization or after initialization
 - To create custom Bean Post Processor, implement interface BeanPostProcessor
@@ -594,13 +594,13 @@ public final class FooTest  {
 - @ActiveProfiles( { "foo", "bar" } )
 
 ####Testing with in-memory DB
-- Real DB usually replaced with in-memory db for integration tests
-- No need to install db server
-- In-memory db initialized with scripts using @Sql annotation
+- Real DB usually replaced with in-memory DB for integration tests
+- No need to install DB server
+- In-memory DB initialized with scripts using @Sql annotation
 - Can be either on class level or method level
 - If on class level, SQL is executed before every test method in the class
 - If on method level, SQL is executed before invoking particular method
-- Can be declared withou or without value
+- Can be declared with or without value
 - When value is present, specified SQL script is executed - @Sql({ "/sql/foo.sql", "/sql/bar.sql" } )
 - When no value is present, defaults to ClassName.methodName.sql
 - Can be specified whether SQL is run before (by default) or after the test method
@@ -622,6 +622,7 @@ public final class FooTest  {
     - Code scattering - Same code scattered among multiple classes, code duplication - eg. same security logic in each class
     
 Writing AOP Apps
+
 1. Write main application logic
 2. Write Aspects to address cross-cutting concerns
 3. Weave aspects into the application, to be applied in right places
