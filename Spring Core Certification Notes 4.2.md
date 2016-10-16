@@ -307,21 +307,21 @@ public class ApplicationConfiguration {
 - Method is invoked before bean is destroyed  
 - Is not called for prototype scoped beans!  
 - After application context is closed  
-- If JVM exits normally  
+- Only if JVM exits normally  
 
 ####Stereotypes and Meta-annotations
-**Stereotype** 
+Stereotypes
 - Spring has several annotations, which are themselves annotated by @Component
 - @Service, @Controller, @Repository, @Configuration, ... more in other Spring Projects
 - Are discoverable using component scan
 
-**Meta-annotations**
+Meta-annotations
 - Used to annotate other annotations
 - Eg. can create custom annotation, which combines @Service and @Transactional
 
 ####[A] @Resource annotation
 - From JSR-250, supported by EJB3
-- Identifies dependencies for injection by name and not type like @Autowired
+- Identifies dependencies for injection by name, not by type like @Autowired
 - Name is spring bean name
 - Can be used for field and setter DI, not for constructors
 - Can be used with name @Resource("beanName") or without
