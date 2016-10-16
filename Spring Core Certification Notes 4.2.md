@@ -176,7 +176,7 @@ public class ApplicationConfiguration {
         return myBean;
     }
 ```
-- In case multiplebeans of the same type are found among configuration, spring injects the one, which is discovered as the last
+- In case multiple beans of the same type are found among configuration, spring injects the one, which is discovered as the last
 
 ##Java Configuration
 - In Java classes annotated with @Configuration on class level
@@ -193,7 +193,7 @@ public class ApplicationConfiguration {
     - Constructor level
 - Autowired dependencies are required by default and result in exception when no matching bean found
 - Can be changed to optional using @Autowired(required=false)
-- Dependencies of type Optional<T> are automatically considered optional
+- Dependencies of type `Optional<T>` are automatically considered optional
 - Can be also used for scanning jar dependencies
 - Recommended to declared as specific scanned packages as possible to speed up scan time
 
@@ -206,7 +206,7 @@ public class ApplicationConfiguration {
 ```
 
 #####@Value annotation
-- Either system properties (using ${}) or SpEL (using #{})
+- Is used to inject value either from system properties (using ${}) or SpEL (using #{})
 - Can be on fields, constructor parameters or setter parameters
 - On constructors and setters must be combined with @Autowired on method level, for fields @Value alone is enough
 - Can specify default values
