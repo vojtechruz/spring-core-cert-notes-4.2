@@ -244,16 +244,16 @@ Autowired resolution sequence
 
 1. Try to inject bean by type, if there is just one
 2. Try to inject by @Qualifier if present
-3. Try to inject by bean name matchin name of the property being set
+3. Try to inject by bean name matching name of the property being set
   - Bean 'foo' for 'foo' field in field injection
   - Bean 'foo' for 'setFoo' setter in setter injection
   - Bean 'foo' for constructor param named 'foo' in constructor injection
     
-When a bean name is not specified, one is auto-generated - De-capitalized non-qualified classname
+When a bean name is not specified, one is auto-generated: De-capitalized non-qualified class name
 
 
 ####Explicit bean declaration
-- Class is explicitly marked as spring managed bean in @Configuration class
+- Class is explicitly marked as spring managed bean in @Configuration class (similiar concept is in xml config)
 - All settings of the bean are present in the @Configuration class in the bean declaration
 - Spring config is completely in the @Configuration, bean is just POJO with no spring dependency
 - Cleaner separation of concerns
