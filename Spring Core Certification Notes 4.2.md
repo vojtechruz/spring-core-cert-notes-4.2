@@ -1186,7 +1186,7 @@ Login JSP Form
 which is automatically recognized and processed by servlet container (Servlets 3.0+)
 
 ##Basic configuration
-AbstractContextLoaderInitializer
+####AbstractContextLoaderInitializer
 ```java
 public class WebAppInitializer extends AbstractContextLoaderInitializer {
 
@@ -1205,7 +1205,7 @@ public class WebAppInitializer extends AbstractContextLoaderInitializer {
     - AbstractAnnotationConfigDispatcherServletInitializer - Registers ContextLoaderListener and defines Dispatcher Servlet, expects JavaConfig
     
 
-web.xml
+####web.xml
 - Register spring-provided Servlet listener
 - Provide spring config files as context param - contextConfigLocation
 - Defaults to WEB-INF/applicationContext.xml if not provided
