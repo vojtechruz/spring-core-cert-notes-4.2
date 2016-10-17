@@ -1451,7 +1451,8 @@ logging.file=logfile.log
 #OR spring.log file in to configured path
 logging.path=/log
 ```
-To change logging framework from default logback
+To change logging framework from default logback  
+
 1. Exclude logback dependency `ch.qos.logback.logback-classic`
 2. Add desired logging framework dependency - `eg. org.slf4j.slf4j-log4j12`
 
