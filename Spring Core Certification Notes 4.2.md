@@ -1430,7 +1430,6 @@ public class Application extends SpringBootServletInitializer {
 - Alternatively, can use YAML configuration - application.yml by default
 - Located in workingdirectory/config or working directory or classpath/config or classpath
 - PropertySource automatically created
-- Properties 
 
 ####Configuration resolution sequence
 1. Check /config subdirectory of the working directory for application.properties file
@@ -1442,6 +1441,7 @@ public class Application extends SpringBootServletInitializer {
 ####Logging
 - By default Logback over SLF4J
 - By default logs to console, but can define log file
+
 ```properties
 #Logging through SLF4J
 logging.level.org.springframework=DEBUG
