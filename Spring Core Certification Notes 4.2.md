@@ -1594,7 +1594,7 @@ public class FooServiceTest {
 }
 ```
 - Or for testing web app - @WebAppConfiguration
-- Intialized web app context
+- Initializes web app context
 
 #Data Management With Spring
 - Spring supports many data-access technologies
