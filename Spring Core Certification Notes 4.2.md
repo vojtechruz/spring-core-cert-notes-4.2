@@ -1915,9 +1915,9 @@ numberOfAffectedRows = jdbcTemplate.update(sqlStatement, param1, param2);
 - To enable transaction management in spring
     - enable transaction management
         - Java - @EnableTransactionManagement
-        - [A] `<tx:annotation-driven/>` in xml
+        - [A] `<tx:annotation-driven/>` in XML
     - Declare a PlatformTransactionManager bean - "transactionManager" is default bean name
-    - Mark methods as transactional (java or xml)
+    - Mark methods as transactional (java or XML)
     
 ####Transaction Manager
 - Spring provides many implementations of PlatformTransactionManager interface
@@ -2123,7 +2123,7 @@ Or entityManagerFactory XML Equivalent
     - Maps to columns like fields
     - Alternative to annotating fields directly
     
- ####@Enbeddable   
+ ####@Embeddable   
  - One row can be mapped to multiple entities
  - Eg. Person, which is one DB table contains personal info as well as address info
  - Address can be embedded in Person entity
