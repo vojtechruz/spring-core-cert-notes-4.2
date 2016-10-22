@@ -1645,7 +1645,7 @@ Or in XML
 </jdbc:embedded-database>
 ```
 
-Alternatively, existing DB can be initialized with data provided
+Alternatively, existing DB can be initialized with DataSource provided
 
 ```xml
 <jdbc:initialize-database data-source="dataSource"> 
