@@ -593,6 +593,11 @@ public final class FooTest  {
 - @ActiveProfiles annotation of test class activates profiles listed 
 - @ActiveProfiles( { "foo", "bar" } )
 
+####Test Property Sources
+- @TestPropertySource overrides any existing property of the same name.
+- Default location is "[classname].propeties"
+- @TestPropertySource(properties= { "username=foo" } )
+
 ####Testing with in-memory DB
 - Real DB usually replaced with in-memory DB for integration tests
 - No need to install DB server
