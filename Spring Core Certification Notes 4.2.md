@@ -1849,7 +1849,7 @@ Query using query for object
 //Single domain object
 Account account = jdbcTemplate.queryForObject(sqlStatement, rowMapper, param1, param2);
 //Multiple domain objects
-List<Account = jdbcTemplate.query(sqlStatement, rowMapper, param1, param2);
+List<Account> = jdbcTemplate.query(sqlStatement, rowMapper, param1, param2);
 ```
 Alternatively, RowMapper can be replaced by lambda expression
 
