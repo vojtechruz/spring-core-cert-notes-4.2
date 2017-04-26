@@ -1696,7 +1696,7 @@ public class DatabaseInitializer {
 - Cache here is a map of cache-key, cached value
 - Multiple caches supported
 - Caching enabled using
-    - `@EnableCachig` on `@Configuration` class level
+    - `@EnableCaching` on `@Configuration` class level
     - or in xml `<cache:annotation-driven />`
 
 ####@Cacheable
