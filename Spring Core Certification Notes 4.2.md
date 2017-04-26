@@ -1996,7 +1996,7 @@ implementing interfaces (!). Can be also applied to interface or parent class.
 ####REQUIRED
 - @Transactional(propagation=Propagation.REQUIRED) 
 - Default value if not specified otherwise
-- If there is already transaction, new @Transacional code is run in existing transaction, otherwise a new transaction is created
+- If there is already transaction, new @Transactional code is run in existing transaction, otherwise a new transaction is created
 
 ####REQUIRES_NEW
 - @Transactional(propagation=Propagation.REQUIRES_NEW)
