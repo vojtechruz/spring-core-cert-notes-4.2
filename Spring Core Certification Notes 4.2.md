@@ -981,7 +981,7 @@ restTemplate.getForObject("http://persons-microservice-name/persons/{id}", Perso
 - Secured item - Resource being secured
 
 ##Configuring Spring Security
-- Annotate your @Configuration with @EnableWebMvcSecurity
+- Annotate your @Configuration with @EnableWebSecurity
 - Your @Configuration should extend WebSecurityConfigurerAdapter
 ```java
 @Configuration
