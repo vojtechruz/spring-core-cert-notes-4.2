@@ -276,7 +276,7 @@ public class ApplicationConfiguration {
     }
 ```
 
-####Conponent scan vs Explicit bean declaration
+####Component scan vs Explicit bean declaration
 - Same settings can be achieved either way
 - Both approaches can be mixed
     - Can use component scan for your code, @Configuration for third party and legacy code
