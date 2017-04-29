@@ -1606,7 +1606,7 @@ public class FooServiceTest {
 - No matter what technology is used, consistent way of using
 - JDBC, JPA, Hibernate, MyBatis, ...
 - Spring manages most of the actions under the hood
-    - Accessing data soruce
+    - Accessing data source
     - Establishing connection
     - Transactions - begin, rollback, commit
     - Close the connection
