@@ -276,7 +276,7 @@ public class ApplicationConfiguration {
     }
 ```
 
-####Conponent scan vs Explicit bean declaration
+####Component scan vs Explicit bean declaration
 - Same settings can be achieved either way
 - Both approaches can be mixed
     - Can use component scan for your code, @Configuration for third party and legacy code
@@ -592,6 +592,11 @@ public final class FooTest  {
 ####Testing with spring profiles
 - @ActiveProfiles annotation of test class activates profiles listed 
 - @ActiveProfiles( { "foo", "bar" } )
+
+####Test Property Sources
+- @TestPropertySource overrides any existing property of the same name.
+- Default location is "[classname].propeties"
+- @TestPropertySource(properties= { "username=foo" } )
 
 ####Testing with in-memory DB
 - Real DB usually replaced with in-memory DB for integration tests
@@ -976,7 +981,7 @@ restTemplate.getForObject("http://persons-microservice-name/persons/{id}", Perso
 - Secured item - Resource being secured
 
 ##Configuring Spring Security
-- Annotate your @Configuration with @EnableWebMvcSecurity
+- Annotate your @Configuration with @EnableWebSecurity
 - Your @Configuration should extend WebSecurityConfigurerAdapter
 ```java
 @Configuration
@@ -1601,7 +1606,7 @@ public class FooServiceTest {
 - No matter what technology is used, consistent way of using
 - JDBC, JPA, Hibernate, MyBatis, ...
 - Spring manages most of the actions under the hood
-    - Accessing data soruce
+    - Accessing data source
     - Establishing connection
     - Transactions - begin, rollback, commit
     - Close the connection
@@ -1691,7 +1696,7 @@ public class DatabaseInitializer {
 - Cache here is a map of cache-key, cached value
 - Multiple caches supported
 - Caching enabled using
-    - `@EnableCachig` on `@Configuration` class level
+    - `@EnableCaching` on `@Configuration` class level
     - or in xml `<cache:annotation-driven />`
 
 ####@Cacheable
@@ -1844,7 +1849,7 @@ Query using query for object
 //Single domain object
 Account account = jdbcTemplate.queryForObject(sqlStatement, rowMapper, param1, param2);
 //Multiple domain objects
-List<Account = jdbcTemplate.query(sqlStatement, rowMapper, param1, param2);
+List<Account> = jdbcTemplate.query(sqlStatement, rowMapper, param1, param2);
 ```
 Alternatively, RowMapper can be replaced by lambda expression
 
@@ -1991,7 +1996,7 @@ implementing interfaces (!). Can be also applied to interface or parent class.
 ####REQUIRED
 - @Transactional(propagation=Propagation.REQUIRED) 
 - Default value if not specified otherwise
-- If there is already transaction, new @Transacional code is run in existing transaction, otherwise a new transaction is created
+- If there is already transaction, new @Transactional code is run in existing transaction, otherwise a new transaction is created
 
 ####REQUIRES_NEW
 - @Transactional(propagation=Propagation.REQUIRES_NEW)
