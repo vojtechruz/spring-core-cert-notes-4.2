@@ -660,7 +660,6 @@ Writing AOP Apps
     - Annotate with @Aspect
     - Must be spring managed bean - either explicitly declare in configuration or discover via component-scan
     - Class methods are annotated with annotation defining advice (eg. Before method call, After, if exception), the annotation value defines pointcut
-    - @Before("execution(void set*(*))")
     
 ```java
 @Aspect
