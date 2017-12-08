@@ -696,7 +696,7 @@ public class MyAspect {
 
 #### After returning
 - Executes after successful target method invocation
-- If advice throws an exception, target is not called
+- If target throws an exception, advice is not called
 - Return value of target method can be injected to the annotated method using `returning` param
 - @AfterReturning(value="expression", returning="paramName")
 ```java
