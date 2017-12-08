@@ -790,7 +790,7 @@ public void setters() {
 - Stateless (clients maintains state, not server), scalable → do not use HTTP session
 - Usually over HTTP, but not necessarily
 - Entities (e.g. Person) are resources represented by URIs
-- HTTP methods (GET, POST, PUL, DELETE) are actions performed on resource (like CRUD)
+- HTTP methods (GET, POST, PUT, DELETE) are actions performed on resource (like CRUD)
 - Resource can have multiple representations (different content type)
 - Request specifies desired representation using HTTP Accept header, extension in URL (.json) or parameter in URL (format=json)
 - Response states delivered representation type using Content-Type HTTP header
