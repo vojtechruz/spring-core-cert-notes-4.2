@@ -384,7 +384,7 @@ Conponent scan can be also used in XML
 
 #### Setter injection
 - Using `<property\>` tag
-- `ref` or `value` like wit constructor injection
+- `ref` or `value` like with constructor injection
 - Setter and constructor injection can be combined
 - Can use `<value\>` tag inside of `<property\>`
 
@@ -416,7 +416,7 @@ Conponent scan can be also used in XML
 ```
 
 
-####XML Namespaces
+#### XML Namespaces
 - Default namespace is usually beans
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
