@@ -1235,7 +1235,7 @@ public class WebAppInitializer extends AbstractContextLoaderInitializer {
 </context-param>
 ```
 
-##Dependency injection in servlets
+## Dependency injection in servlets
 - in init() of HttpServlet cannot access spring beans as they are not available yet
 - need to use `WebApplicationContextUtils` - provides application Context through Servlet Context
 - Only needed in servlets - other components such as @Controllers can use regular Dependency Injection 
@@ -1465,7 +1465,7 @@ To change logging framework from default logback
 - JDBC driver required on classpath, datasource will be created automatically 
 - Tomcat JDBC as default pool, other connection pools can be used if present - eg.HikariCP
 ```properties
-#Conntection
+#Connection
 spring.datasource.url=             
 spring.datasource.username=
 spring.datasource.password=
