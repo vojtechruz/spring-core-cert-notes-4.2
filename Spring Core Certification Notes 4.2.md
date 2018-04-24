@@ -1690,7 +1690,7 @@ public class DatabaseInitializer {
 }
 ```
 
-## Caching
+## [A] Caching
 - Spring bean's method results can be cached
 - Cache here is a map of cache-key, cached value
 - Multiple caches supported
