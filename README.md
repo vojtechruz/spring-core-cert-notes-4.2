@@ -12,3 +12,6 @@ To start using Anki Spring Core Certification deck
 1. [Download](http://ankisrs.net/) and install Anki Software
 2. [Download](https://github.com/vojtechruz/spring-core-cert-notes-4.2/raw/master/Spring%20Core%20Certification.apkg) the Spring Core Certification Deck
 3. Run Anki and import downloaded deck using `File → Import`
+
+# More Info About the certification
+More info about the certification process can be found in [this blog post](https://www.vojtechruzicka.com/exam-notes-pivotal-certified-spring-professional/).
